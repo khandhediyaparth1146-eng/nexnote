@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+venv/
+
+# Environment variables
+.env
+*.env
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+server.log
+
+# MongoDB binary & data
+mongodb-macos-x86_64-7.0.6/
+mongodb-macos-x86_64-7.0.6.tgz
+data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
