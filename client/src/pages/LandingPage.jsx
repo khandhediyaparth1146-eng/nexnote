@@ -110,22 +110,44 @@ const LandingPage = () => {
             </main>
 
             {/* Footer */}
-            <footer className="border-t border-slate-800/50 bg-[#030712]/80 backdrop-blur-md relative z-10 py-12 px-8">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
-                            <Sparkles className="w-3 h-3 text-white" />
+            <footer className="border-t border-slate-800/50 bg-[#030712]/80 backdrop-blur-md relative z-10 py-16 px-8">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left mb-12">
+                    <div className="flex flex-col items-center md:items-start gap-4">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                                <Sparkles className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="font-bold text-xl tracking-tight text-white">NexNote</span>
                         </div>
-                        <span className="font-bold text-lg tracking-tight text-slate-300">NexNote</span>
+                        <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
+                            The intelligent workspace that evolves with your ideas. Secure, fast, and connected.
+                        </p>
                     </div>
-                    <div className="flex flex-wrap justify-center gap-6 text-sm text-slate-500">
-                        <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
-                        <span className="hover:text-white cursor-pointer transition-colors">Terms of Service</span>
-                        <span className="hover:text-white cursor-pointer transition-colors">Contact Support</span>
-                        <span className="hover:text-white cursor-pointer transition-colors">GitHub</span>
+
+                    <div className="flex flex-col items-center md:items-start gap-4">
+                        <h4 className="text-white font-bold tracking-widest uppercase text-xs">Contact Us</h4>
+                        <div className="space-y-2 text-slate-400 text-sm">
+                            <p className="hover:text-indigo-400 cursor-pointer transition-colors">✉️ contact@nexnote.app</p>
+                            <p className="hover:text-indigo-400 cursor-pointer transition-colors">📞 +1 (555) 123-4567</p>
+                        </div>
                     </div>
-                    <div className="text-slate-600 text-sm">
+
+                    <div className="flex flex-col items-center md:items-start gap-4">
+                        <h4 className="text-white font-bold tracking-widest uppercase text-xs">Legal & Social</h4>
+                        <div className="flex flex-col space-y-2 text-slate-400 text-sm items-center md:items-start">
+                            <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
+                            <span className="hover:text-white cursor-pointer transition-colors">Terms of Service</span>
+                            <span className="hover:text-white cursor-pointer transition-colors">GitHub Repository</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-600">
+                    <div>
                         &copy; {new Date().getFullYear()} NexNote. All rights reserved.
+                    </div>
+                    <div className="font-medium tracking-wide">
+                        Developed with ❤️ by <span className="text-slate-400">NexNote Engineering</span>
                     </div>
                 </div>
             </footer>
