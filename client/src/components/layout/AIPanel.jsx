@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Loader, ClipboardCopy, PenLine, CheckCheck, Brain, Zap, Hash, AlignLeft } from 'lucide-react';
+import { Sparkles, Loader, ClipboardCopy, PenLine, CheckCheck, Brain, Zap, Hash, AlignLeft, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { api } from '../../services/api';
@@ -60,6 +60,7 @@ const AIPanel = () => {
     const { activeNote, currentView, updateNote, setCurrentView, setNotes } = useWorkspace();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [chatInput, setChatInput] = useState('');
     const bottomRef = useRef(null);
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -134,6 +135,24 @@ const AIPanel = () => {
         updateNote(activeNote._id, { content: newContent });
     };
 
+    const handleChatSubmit = (e) => {
+        if (e.key === 'Enter' && chatInput.trim()) {
+            const userText = chatInput.trim();
+            setMessages(prev => [...prev, { role: 'user', text: userText }]);
+            setChatInput('');
+            setLoading(true);
+
+            // Mock AI chat response (since real LLM isn't available)
+            setTimeout(() => {
+                setMessages(prev => [...prev, { 
+                    role: 'assistant', 
+                    text: `Based on your note "${activeNote.title}", I found some context regarding "${userText}". Keep adding details to your note so I can assist you further!` 
+                }]);
+                setLoading(false);
+            }, 1000);
+        }
+    };
+
     return (
         <div className="w-80 h-screen bg-[#020617] border-l border-slate-900 flex flex-col sticky top-0 right-0 hidden lg:flex shrink-0 font-outfit">
             <div className="p-6 border-b border-slate-900 flex items-center justify-between">
@@ -153,10 +172,10 @@ const AIPanel = () => {
                 <div ref={bottomRef} />
             </div>
 
-            <div className="p-6 bg-[#030712] border-t border-slate-900 space-y-4">
+            <div className="p-6 bg-[#030712] border-t border-slate-900 space-y-4 flex flex-col">
                 <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Quick Intelligence</p>
                 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 mb-4">
                     <button 
                         onClick={() => handleAction('summarize')}
                         className="flex flex-col items-start gap-2 p-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-indigo-500/50 transition-all group"
@@ -184,6 +203,23 @@ const AIPanel = () => {
                     >
                         <Brain size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
                         <span className="text-[11px] font-bold text-slate-300">Study</span>
+                    </button>
+                </div>
+
+                <div className="relative mt-2">
+                    <input 
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyDown={handleChatSubmit}
+                        placeholder="Ask your brain..."
+                        className="w-full bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-xl py-3 pl-4 pr-10 focus:outline-none focus:border-indigo-500 transition-colors"
+                    />
+                    <button 
+                        onClick={() => handleChatSubmit({ key: 'Enter' })}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-indigo-400 transition-colors"
+                    >
+                        <Send size={16} />
                     </button>
                 </div>
             </div>

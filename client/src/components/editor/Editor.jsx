@@ -10,9 +10,21 @@ const Editor = () => {
     const { activeNote, updateNote, deleteNote } = useWorkspace();
     const [tagInput, setTagInput] = useState('');
     const [showCover, setShowCover] = useState(false);
+    const [showSlashMenu, setShowSlashMenu] = useState(false);
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     const isOwner = activeNote && (activeNote.authorId === currentUser.id || activeNote.authorId?._id === currentUser.id || activeNote._id?.startsWith('local-'));
+
+    const handleSlashCommand = (command) => {
+        let newContent = activeNote.content.slice(0, -1); // remove slash
+        
+        if (command === 'heading') newContent += '\n# ';
+        else if (command === 'ai-summary') newContent += '\n\n---\n✨ **AI Summary Block**\n---\n';
+        else if (command === 'flashcard') newContent += '\n\n**Flashcard**\nQ: \nA: ';
+        
+        updateNote(activeNote._id, { content: newContent });
+        setShowSlashMenu(false);
+    };
 
     if (!activeNote) {
         return (
@@ -173,13 +185,61 @@ const Editor = () => {
                     </div>
 
                     {/* Content */}
-                    <textarea
-                        value={activeNote.content}
-                        disabled={!isOwner}
-                        onChange={(e) => updateNote(activeNote._id, { content: e.target.value })}
-                        className="w-full min-h-[600px] bg-transparent border-none outline-none text-slate-400 text-xl leading-[2] resize-none focus:ring-0 placeholder-slate-900 font-medium pb-40"
-                        placeholder="Commit your intelligence to the node..."
-                    />
+                    <div className="relative flex-1 flex flex-col">
+                        <textarea
+                            value={activeNote.content}
+                            disabled={!isOwner}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val.endsWith('/')) setShowSlashMenu(true);
+                                else setShowSlashMenu(false);
+                                updateNote(activeNote._id, { content: val });
+                            }}
+                            className="w-full h-full min-h-[600px] bg-transparent border-none outline-none text-slate-400 text-xl leading-[2] resize-none focus:ring-0 placeholder-slate-900 font-medium pb-40"
+                            placeholder="Commit your intelligence to the node... (Type '/' for commands)"
+                        />
+
+                        {/* Notion-Style Slash Menu */}
+                        <AnimatePresence>
+                            {showSlashMenu && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="absolute bottom-20 left-4 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 p-2"
+                                >
+                                    <div className="px-3 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-800/50 mb-2">
+                                        Advanced Commands
+                                    </div>
+                                    <button onClick={() => handleSlashCommand('heading')} className="w-full flex items-center gap-3 px-3 py-3 hover:bg-indigo-600/10 rounded-xl text-left transition-colors group">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-indigo-400 group-hover:bg-indigo-600/20">H1</div>
+                                        <div>
+                                            <div className="text-sm font-bold text-slate-200">Heading 1</div>
+                                            <div className="text-[10px] text-slate-500 font-medium">Large section heading</div>
+                                        </div>
+                                    </button>
+                                    <button onClick={() => handleSlashCommand('ai-summary')} className="w-full flex items-center gap-3 px-3 py-3 hover:bg-purple-600/10 rounded-xl text-left transition-colors group">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-purple-400 group-hover:bg-purple-600/20">
+                                            <Sparkles size={14} />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-bold text-slate-200">AI Summary Block</div>
+                                            <div className="text-[10px] text-slate-500 font-medium">Insert summary block</div>
+                                        </div>
+                                    </button>
+                                    <button onClick={() => handleSlashCommand('flashcard')} className="w-full flex items-center gap-3 px-3 py-3 hover:bg-amber-600/10 rounded-xl text-left transition-colors group">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-amber-400 group-hover:bg-amber-600/20">
+                                            <Tag size={14} />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-bold text-slate-200">Flashcard Block</div>
+                                            <div className="text-[10px] text-slate-500 font-medium">Q & A format</div>
+                                        </div>
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
         </div>
