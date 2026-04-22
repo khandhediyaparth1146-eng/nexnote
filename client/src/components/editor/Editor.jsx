@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Trash, Globe, Lock, Calendar, Tag, 
-    CheckCircle2, Sparkles
+    CheckCircle2, Sparkles, Mic, MicOff
 } from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,9 +11,55 @@ const Editor = () => {
     const [tagInput, setTagInput] = useState('');
     const [showCover, setShowCover] = useState(false);
     const [showSlashMenu, setShowSlashMenu] = useState(false);
+    const [isListening, setIsListening] = useState(false);
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     const isOwner = activeNote && (activeNote.authorId === currentUser.id || activeNote.authorId?._id === currentUser.id || activeNote._id?.startsWith('local-'));
+
+    // Web Speech API Setup
+    const handleDictation = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Sorry, your browser doesn't support voice dictation.");
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        if (isListening) {
+            recognition.stop();
+            setIsListening(false);
+            return;
+        }
+
+        recognition.onstart = () => setIsListening(true);
+        
+        recognition.onresult = (event) => {
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript + ' ';
+                }
+            }
+            if (finalTranscript) {
+                const newContent = activeNote.content + (activeNote.content.endsWith(' ') ? '' : ' ') + finalTranscript;
+                updateNote(activeNote._id, { content: newContent });
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error(event.error);
+            setIsListening(false);
+        };
+
+        recognition.onend = () => setIsListening(false);
+
+        recognition.start();
+    };
 
     const handleSlashCommand = (command) => {
         let newContent = activeNote.content.slice(0, -1); // remove slash
@@ -96,6 +142,19 @@ const Editor = () => {
                                 className="flex items-center gap-2 px-3 md:px-4 py-2 bg-indigo-600/10 border border-indigo-600/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all shadow-lg shadow-indigo-600/5"
                             >
                                 <Sparkles size={14} /> <span className="hidden sm:inline">Magic Cover</span>
+                            </button>
+                        )}
+                        {isOwner && (
+                            <button 
+                                onClick={handleDictation}
+                                className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    isListening 
+                                    ? 'bg-red-500/20 border border-red-500/50 text-red-400 animate-pulse'
+                                    : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-indigo-400'
+                                }`}
+                            >
+                                {isListening ? <Mic size={14} /> : <MicOff size={14} />} 
+                                <span className="hidden sm:inline">{isListening ? 'Listening...' : 'Dictate'}</span>
                             </button>
                         )}
                     </div>
