@@ -36,15 +36,50 @@ def health_check():
 @app.post("/analyze")
 def analyze_text(content: NoteContent):
     doc = nlp(content.text)
-    # Simple NLP tasks: Keyword extraction via Named Entities
-    entities = list(set([ent.text for ent in doc.ents if len(ent.text) > 2]))
     
-    # Mock summary logic for MVP
-    summary = f"Summary of {len(content.text.split())} words note: {content.text[:100]}..."
+    # 1. Genuine Keyword Extraction
+    # Extract nouns and proper nouns, ignore stop words
+    keywords = list(set([token.text.lower() for token in doc if token.pos_ in ['NOUN', 'PROPN'] and not token.is_stop and len(token.text) > 2]))
     
+    # 2. Genuine Extractive Summarization
+    word_frequencies = {}
+    for word in doc:
+        if not word.is_stop and not word.is_punct:
+            word_text = word.text.lower()
+            if word_text not in word_frequencies:
+                word_frequencies[word_text] = 1
+            else:
+                word_frequencies[word_text] += 1
+                
+    max_frequency = max(word_frequencies.values()) if word_frequencies else 1
+    for word in word_frequencies.keys():
+        word_frequencies[word] = word_frequencies[word] / max_frequency
+
+    sentence_scores = {}
+    for sent in doc.sents:
+        for word in sent:
+            if word.text.lower() in word_frequencies.keys():
+                if len(sent.text.split(' ')) < 40: # Avoid overly long sentences
+                    if sent not in sentence_scores.keys():
+                        sentence_scores[sent] = word_frequencies[word.text.lower()]
+                    else:
+                        sentence_scores[sent] += word_frequencies[word.text.lower()]
+                        
+    import heapq
+    # Pick top 3 most relevant sentences
+    summary_sentences = heapq.nlargest(3, sentence_scores, key=sentence_scores.get)
+    # Order them as they appear in the original text
+    summary_sentences = sorted(summary_sentences, key=lambda s: s.start)
+    
+    summary = " ".join([sent.text.strip() for sent in summary_sentences])
+    
+    # Fallback if text is too short
+    if not summary.strip():
+        summary = content.text[:200] + ("..." if len(content.text) > 200 else "")
+
     return {
-        "keywords": entities[:10],
-        "suggested_tags": ["AI-Generated", "Technology"] if "quantum" in content.text.lower() else ["General"],
+        "keywords": keywords[:10],
+        "suggested_tags": keywords[:3],
         "summary": summary
     }
 
