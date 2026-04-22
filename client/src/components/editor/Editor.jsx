@@ -17,13 +17,55 @@ const Editor = () => {
     const isOwner = activeNote && (activeNote.authorId === currentUser.id || activeNote.authorId?._id === currentUser.id || activeNote._id?.startsWith('local-'));
 
     const handleExport = () => {
-        const element = document.createElement('a');
-        const file = new Blob([`# ${activeNote.title || 'Untitled'}\n\n${activeNote.content}`], { type: 'text/markdown' });
-        element.href = URL.createObjectURL(file);
-        element.download = `${(activeNote.title || 'Note').replace(/ /g, '_')}.md`;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
+        // Create hidden iframe for printing to PDF
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        
+        const doc = iframe.contentWindow.document;
+        doc.write('<html><head><title>Export Note - NexNote</title>');
+        doc.write('<style>');
+        doc.write('body { font-family: "Segoe UI", Arial, sans-serif; color: #333; line-height: 1.6; padding: 40px; }');
+        doc.write('h1 { color: #1e1e2f; border-bottom: 2px solid #6366f1; padding-bottom: 10px; font-size: 28px; margin-top: 0; }');
+        doc.write('.content { margin-bottom: 50px; font-size: 16px; white-space: pre-wrap; }');
+        doc.write('.features { background: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0; }');
+        doc.write('.features h2 { color: #4f46e5; margin-top: 0; font-size: 20px; }');
+        doc.write('.features ul { padding-left: 20px; margin-bottom: 0; }');
+        doc.write('.features li { margin-bottom: 8px; }');
+        doc.write('</style>');
+        doc.write('</head><body>');
+        
+        // Write Note Title & Content
+        doc.write(`<h1>${activeNote.title || 'Untitled Node'}</h1>`);
+        const safeContent = activeNote.content ? activeNote.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+        doc.write(`<div class="content">${safeContent}</div>`);
+        
+        // Write Features at the bottom
+        doc.write(`
+            <div class="features">
+                <h2>Generated via NexNote Platform</h2>
+                <p>This intelligence node was created using NexNote's advanced features:</p>
+                <ul>
+                    <li><strong>AI Copilot & NLP Engine:</strong> Real-time extractive summarization, simplification, and keyword auto-tagging.</li>
+                    <li><strong>Automated Study Mode:</strong> Dynamic flashcard quiz generation.</li>
+                    <li><strong>AI Voice Dictation:</strong> Real-time speech-to-text transcription.</li>
+                    <li><strong>Knowledge Graph:</strong> Visual metadata tagging and semantic network mapping.</li>
+                    <li><strong>Collaboration Hub:</strong> Multiplayer research groups and secure cloud synchronization.</li>
+                </ul>
+            </div>
+        `);
+        
+        doc.write('</body></html>');
+        doc.close();
+        
+        // Trigger print/save to PDF dialogue
+        setTimeout(() => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 1000);
+        }, 500);
     };
 
     // Web Speech API Setup
