@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Users, Plus, Shield, Network } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, Plus, Shield, Network, ArrowUpRight, Sparkles, X, Layout, Lock, Globe } from 'lucide-react';
 import { api } from '../../services/api';
 
 const GroupManager = () => {
@@ -42,86 +42,181 @@ const GroupManager = () => {
     };
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 bg-background h-screen overflow-y-auto p-10 text-white w-full border-r border-slate-700/50">
-            <div className="max-w-4xl mx-auto">
-                <div className="flex items-center justify-between mb-8">
+        <div className="flex-1 bg-[#030712] h-screen overflow-y-auto w-full font-outfit relative scrollbar-hide">
+            <div className="max-w-6xl mx-auto p-12">
+                
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
                     <div>
-                        <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                            <Users className="text-primary" size={32} />
-                            Friend Groups
-                        </h2>
-                        <p className="text-slate-400 mt-2">Manage your study groups, teams, and research circles to share notes.</p>
+                        <h2 className="text-5xl font-black text-white italic tracking-tighter uppercase mb-2">Collaboration <span className="text-indigo-500">Hub</span></h2>
+                        <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em]">Sync your intelligence with research circles</p>
                     </div>
+
                     <button
-                        onClick={() => setShowCreate(!showCreate)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-indigo-600 text-white rounded-full text-sm font-medium transition shadow-lg shadow-primary/20"
+                        onClick={() => setShowCreate(true)}
+                        className="bg-white text-slate-950 px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all active:scale-95 shadow-xl shadow-white/5 flex items-center gap-2"
                     >
-                        <Plus size={16} /> Create Group
+                        <Plus size={18} /> Establish Circle
                     </button>
                 </div>
 
-                {showCreate && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                        className="mb-8 p-6 bg-slate-800/40 border border-slate-700/50 rounded-xl"
-                    >
-                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Network size={18} className="text-emerald-400" /> New Group Details</h3>
-                        <form onSubmit={handleCreateGroup} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Group Name</label>
-                                    <input required type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Physics 101 Study Group" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" />
+                {/* Create Group Modal/Overlay */}
+                <AnimatePresence>
+                    {showCreate && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowCreate(false)}
+                                className="absolute inset-0 bg-[#030712]/90 backdrop-blur-xl"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-[40px] p-10 shadow-2xl overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600" />
+                                
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-indigo-600/10 rounded-xl flex items-center justify-center text-indigo-400">
+                                            <Network size={20} />
+                                        </div>
+                                        <h3 className="text-2xl font-black text-white uppercase tracking-tighter">New Intelligence Circle</h3>
+                                    </div>
+                                    <button onClick={() => setShowCreate(false)} className="text-slate-500 hover:text-white transition-colors">
+                                        <X size={24} />
+                                    </button>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Group Type</label>
-                                    <select value={groupType} onChange={e => setGroupType(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
-                                        <option>Study Group</option>
-                                        <option>Project Team</option>
-                                        <option>Research Group</option>
-                                        <option>Other</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Description (Optional)</label>
-                                <input type="text" value={description} onChange={e => setDescription(e.target.value)} placeholder="What is this group about?" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 text-slate-400 hover:text-white transition">Cancel</button>
-                                <button type="submit" className="px-6 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold rounded-lg transition shadow-md">Create Group</button>
-                            </div>
-                        </form>
-                    </motion.div>
-                )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <form onSubmit={handleCreateGroup} className="space-y-6">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Circle Identity</label>
+                                            <input 
+                                                required 
+                                                type="text" 
+                                                value={name} 
+                                                onChange={e => setName(e.target.value)} 
+                                                placeholder="e.g. Physics Quantum Research" 
+                                                className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-indigo-500 transition-all font-medium" 
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Circle Archetype</label>
+                                                <select 
+                                                    value={groupType} 
+                                                    onChange={e => setGroupType(e.target.value)} 
+                                                    className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-indigo-500 transition-all font-medium appearance-none"
+                                                >
+                                                    <option>Study Group</option>
+                                                    <option>Project Team</option>
+                                                    <option>Research Group</option>
+                                                    <option>Open Network</option>
+                                                </select>
+                                            </div>
+                                            <div className="flex items-end">
+                                                <div className="w-full bg-indigo-600/5 border border-indigo-600/10 rounded-2xl px-5 py-4 flex items-center gap-3 text-indigo-400">
+                                                    <Shield size={16} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Secured Node</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Objectives</label>
+                                            <textarea 
+                                                value={description} 
+                                                onChange={e => setDescription(e.target.value)} 
+                                                placeholder="What intelligence will be synced here?" 
+                                                className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-indigo-500 transition-all font-medium resize-none h-32" 
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        type="submit" 
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-[0.2em] text-[11px] py-5 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 active:scale-[0.98]"
+                                    >
+                                        Initialize Circle
+                                    </button>
+                                </form>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Groups Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {loading ? (
-                        [1, 2].map(i => <div key={i} className="h-32 bg-slate-800/30 rounded-xl border border-slate-700/50 animate-pulse" />)
+                        [1, 2, 3].map(i => (
+                            <div key={i} className="h-64 bg-slate-900/20 rounded-[40px] border border-slate-800/50 animate-pulse" />
+                        ))
                     ) : groups.length === 0 ? (
-                        <div className="col-span-full py-16 text-center border border-dashed border-slate-700 rounded-xl bg-slate-800/20">
-                            <Users size={48} className="mx-auto text-slate-600 mb-4" />
-                            <h3 className="text-xl font-medium text-slate-300">No groups yet</h3>
-                            <p className="text-slate-500 mt-2">Create one to start sharing notes with your friends.</p>
+                        <div className="col-span-full py-32 flex flex-col items-center justify-center border-2 border-dashed border-slate-900/50 rounded-[40px]">
+                            <div className="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center mb-6">
+                                <Users size={40} className="text-slate-800" />
+                            </div>
+                            <p className="text-slate-600 font-black uppercase tracking-[0.3em] text-xs">No active circles found</p>
                         </div>
                     ) : (
-                        groups.map(group => (
-                            <div key={group._id} className="p-6 rounded-xl border border-slate-700/50 bg-slate-800/30 hover:bg-slate-800/50 transition relative group cursor-pointer">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-lg font-semibold text-white">{group.name}</h3>
-                                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 font-medium px-2 py-1 rounded-full">{group.groupType}</span>
+                        groups.map((group, i) => (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                key={group._id} 
+                                className="group relative p-10 bg-slate-900/30 border border-slate-800/50 rounded-[40px] hover:border-indigo-500/30 transition-all duration-500 cursor-pointer shadow-2xl overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <ArrowUpRight size={20} className="text-indigo-400" />
                                 </div>
-                                <p className="text-sm text-slate-400 mb-4 line-clamp-2">{group.description || 'No description provided.'}</p>
 
-                                <div className="flex items-center gap-2 mt-auto border-t border-slate-700/50 pt-4">
-                                    <Shield size={14} className="text-slate-500" />
-                                    <span className="text-xs text-slate-400">{group.members.length} member(s)</span>
+                                <div className="flex flex-col h-full relative z-10">
+                                    <div className="flex items-center justify-between mb-10">
+                                        <div className="w-14 h-14 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-500">
+                                            <Sparkles size={24} />
+                                        </div>
+                                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-500/5 px-4 py-1.5 rounded-full border border-indigo-500/10">
+                                            {group.groupType}
+                                        </span>
+                                    </div>
+
+                                    <h3 className="text-2xl font-black text-white group-hover:text-indigo-400 transition-colors mb-4 tracking-tighter">
+                                        {group.name}
+                                    </h3>
+                                    
+                                    <p className="text-[13px] text-slate-500 font-bold leading-relaxed line-clamp-3 mb-12 italic">
+                                        {group.description || "Synthesizing knowledge without a defined objective..."}
+                                    </p>
+
+                                    <div className="mt-auto flex items-center justify-between pt-8 border-t border-slate-800/50">
+                                        <div className="flex -space-x-3">
+                                            {[1, 2, 3].map(m => (
+                                                <div key={m} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-[#030712] flex items-center justify-center text-[10px] font-black text-slate-500">
+                                                    {String.fromCharCode(64 + m)}
+                                                </div>
+                                            ))}
+                                            <div className="w-8 h-8 rounded-full bg-indigo-600 border-2 border-[#030712] flex items-center justify-center text-[10px] font-black text-white">
+                                                +{group.members.length}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-slate-600">
+                                            <Lock size={12} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Internal Circle</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))
                     )}
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 };
 

@@ -1,249 +1,185 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import { 
+    Trash, Globe, Lock, Calendar, Tag, 
+    CheckCircle2, Sparkles
+} from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { Trash, Tag, Lock, Globe, Users, Save, Check, Clock, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ─── Visibility Selector Component ─────────────────────────────────────────────
-const VISIBILITY_OPTIONS = [
-    {
-        key: 'private',
-        label: 'Private',
-        desc: 'Only you can see this note',
-        icon: <Lock size={16} />,
-        color: 'text-slate-300',
-        activeBg: 'bg-slate-700 border-slate-500',
-        inactiveBg: 'bg-slate-800/50 border-slate-700/50',
-        dot: 'bg-slate-400',
-    },
-    {
-        key: 'public',
-        label: 'Public',
-        desc: 'Anyone on NexNote can read',
-        icon: <Globe size={16} />,
-        color: 'text-emerald-300',
-        activeBg: 'bg-emerald-500/20 border-emerald-400/50',
-        inactiveBg: 'bg-slate-800/50 border-slate-700/50',
-        dot: 'bg-emerald-400',
-    },
-];
-
-const VisibilitySelector = ({ value, onChange, groups = [], sharedWithGroups = [], onToggleGroup }) => {
-    return (
-        <div className="mt-6 mb-8 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Lock size={11} /> Note Visibility
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-                {VISIBILITY_OPTIONS.map(opt => (
-                    <button
-                        key={opt.key}
-                        onClick={() => onChange(opt.key)}
-                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all duration-200 ${value === opt.key ? opt.activeBg : opt.inactiveBg} hover:scale-105 cursor-pointer`}
-                    >
-                        <div className={`${value === opt.key ? opt.color : 'text-slate-500'} transition-colors`}>
-                            {opt.icon}
-                        </div>
-                        <span className={`text-xs font-semibold ${value === opt.key ? opt.color : 'text-slate-500'}`}>
-                            {opt.label}
-                        </span>
-                        <span className="text-[10px] text-slate-500 text-center leading-tight hidden sm:block">
-                            {opt.desc}
-                        </span>
-                        {value === opt.key && (
-                            <motion.div
-                                layoutId="visibility-check"
-                                className={`w-1.5 h-1.5 rounded-full ${opt.dot}`}
-                            />
-                        )}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-// ─── Main Editor ────────────────────────────────────────────────────────────────
 const Editor = () => {
-    const { activeNote, updateNote, deleteNote, saveNote, createNote, saving } = useWorkspace();
+    const { activeNote, updateNote, deleteNote } = useWorkspace();
     const [tagInput, setTagInput] = useState('');
-    const [groups, setGroups] = useState([]);
+    const [showCover, setShowCover] = useState(false);
 
-    // Get current user from localStorage
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     const isOwner = activeNote && (activeNote.authorId === currentUser.id || activeNote.authorId?._id === currentUser.id || activeNote._id?.startsWith('local-'));
 
-    // Fetch groups when editor mounts
-    useEffect(() => {
-        const fetchGroups = async () => {
-            try {
-                const { api } = await import('../../services/api');
-                const res = await api.getGroups();
-                setGroups(res.data);
-            } catch (err) {
-                console.warn('Could not fetch groups', err);
-            }
-        };
-        fetchGroups();
-    }, []);
-
-
     if (!activeNote) {
         return (
-            <div className="flex-1 bg-background h-screen overflow-y-auto w-full flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-4xl mb-4">📄</div>
-                    <p className="text-slate-500 text-lg font-medium">No note selected</p>
-                    <p className="text-slate-600 text-sm mt-1">Create a new note or select one from the sidebar</p>
+            <div className="flex-1 flex flex-col items-center justify-center bg-[#030712] text-slate-600 font-outfit">
+                <div className="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center mb-6">
+                    <Sparkles size={40} className="text-slate-800" />
                 </div>
+                <p className="text-sm font-black uppercase tracking-[0.3em]">No Node Selected</p>
             </div>
         );
     }
 
     const handleAddTag = (e) => {
-        if (!isOwner) return;
         if (e.key === 'Enter' && tagInput.trim()) {
-            const newTag = tagInput.trim().toLowerCase().replace(/\s+/g, '-');
-            updateNote(activeNote._id, { tags: [...new Set([...activeNote.tags, newTag])] });
+            const newTags = [...new Set([...(activeNote.tags || []), tagInput.trim()])];
+            updateNote(activeNote._id, { tags: newTags });
             setTagInput('');
         }
     };
 
     const handleRemoveTag = (tag) => {
         if (!isOwner) return;
-        updateNote(activeNote._id, { tags: activeNote.tags.filter(t => t !== tag) });
+        const newTags = activeNote.tags.filter(t => t !== tag);
+        updateNote(activeNote._id, { tags: newTags });
     };
 
-    const activeVis = VISIBILITY_OPTIONS.find(o => o.key === activeNote.visibility) || VISIBILITY_OPTIONS[0];
+    const toggleVisibility = () => {
+        if (!isOwner) return;
+        const newVisibility = activeNote.visibility === 'public' ? 'private' : 'public';
+        updateNote(activeNote._id, { visibility: newVisibility });
+    };
 
     return (
-        <div className="flex-1 bg-background h-screen overflow-y-auto w-full">
-            <div className="max-w-3xl mx-auto py-10 px-8 min-h-screen">
+        <div className="flex-1 flex flex-col bg-[#030712] overflow-hidden font-outfit relative">
+            
+            <div className="max-w-4xl mx-auto w-full h-full flex flex-col pt-12 md:pt-20 px-4 md:px-8 overflow-y-auto scrollbar-hide">
+                
+                {/* Magic Cover Area */}
+                <AnimatePresence>
+                    {showCover && (
+                        <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 200 }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="relative w-full md:h-[300px] rounded-3xl md:rounded-[40px] overflow-hidden mb-8 md:mb-12 group shadow-2xl shrink-0"
+                        >
+                            <img 
+                                src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop" 
+                                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100" 
+                                alt="Magic Cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent" />
+                            <button 
+                                onClick={() => setShowCover(false)}
+                                className="absolute top-4 right-4 p-2 bg-black/50 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                                <Trash size={14} />
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                {/* Breadcrumb + Status bar */}
-                <div className="flex items-center justify-between gap-2 text-sm text-slate-400 mb-8">
-                    <div className="flex items-center gap-2">
-                        <span>Workspace</span>
-                        <span>/</span>
-                        <span className="capitalize">{activeNote.categories?.[0] || 'Uncategorized'}</span>
-                    </div>
+                {/* Header Actions */}
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-8 md:mb-12 shrink-0">
                     <div className="flex items-center gap-3">
-                        {/* Sync Status */}
-                        <div className="flex items-center gap-2 mr-2">
-                            {saving ? (
-                                <div className="flex items-center gap-1.5 text-xs text-indigo-400">
-                                    <Loader size={12} className="animate-spin" />
-                                    <span>Syncing...</span>
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                                    <Check size={12} className="text-emerald-500" />
-                                    <span>Synced</span>
-                                </div>
-                            )}
+                        {isOwner && (
+                            <button 
+                                onClick={() => setShowCover(true)}
+                                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-indigo-600/10 border border-indigo-600/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all shadow-lg shadow-indigo-600/5"
+                            >
+                                <Sparkles size={14} /> <span className="hidden sm:inline">Magic Cover</span>
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl">
+                            <CheckCircle2 size={12} className="text-emerald-500" />
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Synced</span>
                         </div>
-
-                        {/* Live visibility badge */}
-                        <span className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full border ${activeVis.activeBg} ${activeVis.color}`}>
-                            {activeVis.icon}
-                            {activeVis.label}
-                        </span>
-
-                        {!isOwner && (
-                            <span className="flex items-center gap-1.5 text-[10px] font-bold px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase tracking-widest">
-                                Read Only
-                            </span>
+                        
+                        {isOwner && (
+                            <button
+                                onClick={toggleVisibility}
+                                className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    activeNote.visibility === 'public'
+                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                                    : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'
+                                }`}
+                            >
+                                {activeNote.visibility === 'public' ? <Globe size={14} /> : <Lock size={14} />}
+                                <span className="hidden sm:inline">{activeNote.visibility}</span>
+                            </button>
                         )}
 
                         {isOwner && (
                             <button
                                 onClick={() => deleteNote(activeNote._id)}
-                                className="text-red-400/50 hover:text-red-400 transition p-1.5 rounded-lg hover:bg-red-400/10"
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-900 border border-slate-800 text-slate-500 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all"
                             >
-                                <Trash size={15} />
+                                <Trash size={16} />
                             </button>
                         )}
                     </div>
                 </div>
 
-                {/* Title */}
-                <input
-                    type="text"
-                    value={activeNote.title}
-                    disabled={!isOwner}
-                    onChange={(e) => updateNote(activeNote._id, { title: e.target.value })}
-                    className={`w-full text-4xl font-bold bg-transparent border-none outline-none text-white mb-4 placeholder-slate-700 focus:ring-0 ${!isOwner ? 'cursor-default' : ''}`}
-                    placeholder="Note title..."
-                />
+                <div className="flex flex-col flex-1">
+                    {/* Metadata */}
+                    <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-6 text-slate-600 text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] flex-wrap">
+                        <Calendar size={12} />
+                        <span>{new Date(activeNote.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                        <div className="w-1 h-1 bg-slate-800 rounded-full" />
+                        <span className="text-indigo-500">{activeNote.authorId?.username || 'Private Node'}</span>
+                    </div>
 
-                {/* Tags */}
-                <div className="flex gap-2 mb-2 items-center flex-wrap">
-                    {activeNote.tags?.map(tag => (
-                        <span
-                            key={tag}
-                            onClick={() => handleRemoveTag(tag)}
-                            className={`flex items-center gap-1 px-2.5 py-1 bg-indigo-500/20 text-indigo-300 text-xs rounded-md font-medium border border-indigo-500/20 transition-all ${isOwner ? 'cursor-pointer hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/20' : 'cursor-default'}`}
-                            title={isOwner ? "Click to remove" : ""}
-                        >
-                            #{tag}
-                        </span>
-                    ))}
-                    {isOwner && (
-                        <div className="flex items-center gap-1.5">
-                            <Tag size={11} className="text-slate-600" />
-                            <input
-                                type="text"
-                                value={tagInput}
-                                onChange={e => setTagInput(e.target.value)}
-                                onKeyDown={handleAddTag}
-                                placeholder="Add tag + Enter"
-                                className="bg-transparent border-b border-slate-800 text-slate-400 text-xs outline-none focus:border-slate-600 px-1 py-1 w-28"
-                            />
-                        </div>
-                    )}
-                </div>
-
-                {/* ─── VISIBILITY SELECTOR ─── */}
-                {isOwner && (
-                    <VisibilitySelector
-                        value={activeNote.visibility}
-                        onChange={(vis) => updateNote(activeNote._id, { visibility: vis })}
-                        groups={groups}
-                        sharedWithGroups={activeNote.sharedWithGroups || []}
-                        onToggleGroup={(groupId) => {
-                            const current = activeNote.sharedWithGroups || [];
-                            const updated = current.includes(groupId)
-                                ? current.filter(id => id !== groupId)
-                                : [...current, groupId];
-                            updateNote(activeNote._id, { sharedWithGroups: updated });
-                        }}
+                    {/* Title */}
+                    <input
+                        type="text"
+                        value={activeNote.title}
+                        disabled={!isOwner}
+                        onChange={(e) => updateNote(activeNote._id, { title: e.target.value })}
+                        className="w-full text-4xl md:text-6xl font-black bg-transparent border-none outline-none text-white mb-6 md:mb-8 placeholder-slate-900 focus:ring-0 leading-[1.1] tracking-tighter"
+                        placeholder="Untitled Node"
                     />
-                )}
 
-                {/* Note Body */}
-                <textarea
-                    value={activeNote.content}
-                    disabled={!isOwner}
-                    onChange={(e) => updateNote(activeNote._id, { content: e.target.value })}
-                    className={`w-full min-h-[400px] bg-transparent border-none outline-none text-slate-300 leading-relaxed resize-none focus:ring-0 text-base ${!isOwner ? 'cursor-default' : ''}`}
-                    placeholder="Start writing your note here..."
-                />
-
-                {/* Save and New Button */}
-                <div className="flex justify-end mt-6 border-t border-slate-700/50 pt-6 pb-12">
-                    {isOwner ? (
-                        <button
-                            onClick={async () => {
-                                await saveNote(activeNote._id);
-                            }}
-                            className="flex items-center gap-3 px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98]"
-                        >
-                            <Save size={18} /> Save Changes
-                        </button>
-                    ) : (
-                        <div className="text-slate-500 text-sm italic">
-                            You are viewing a shared community insight.
+                    {/* Tags */}
+                    <div className="flex items-center gap-3 mb-12 flex-wrap">
+                        <div className="flex gap-2 flex-wrap">
+                            <AnimatePresence>
+                                {activeNote.tags?.map(tag => (
+                                    <motion.span
+                                        key={tag}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        onClick={() => handleRemoveTag(tag)}
+                                        className={`inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900/50 text-indigo-400 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-800/50 transition-all ${isOwner ? 'hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 cursor-pointer' : ''}`}
+                                    >
+                                        #{tag}
+                                    </motion.span>
+                                ))}
+                            </AnimatePresence>
                         </div>
-                    )}
+                        
+                        {isOwner && (
+                            <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/30 rounded-xl border border-slate-800/50 focus-within:border-indigo-500/50 transition-colors">
+                                <Tag size={12} className="text-slate-600" />
+                                <input
+                                    type="text"
+                                    value={tagInput}
+                                    onChange={e => setTagInput(e.target.value)}
+                                    onKeyDown={handleAddTag}
+                                    placeholder="Add Node Label..."
+                                    className="bg-transparent border-none text-slate-500 text-[10px] font-black uppercase outline-none w-28 focus:ring-0"
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Content */}
+                    <textarea
+                        value={activeNote.content}
+                        disabled={!isOwner}
+                        onChange={(e) => updateNote(activeNote._id, { content: e.target.value })}
+                        className="w-full min-h-[600px] bg-transparent border-none outline-none text-slate-400 text-xl leading-[2] resize-none focus:ring-0 placeholder-slate-900 font-medium pb-40"
+                        placeholder="Commit your intelligence to the node..."
+                    />
                 </div>
             </div>
         </div>

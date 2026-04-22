@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { TrendingUp, User as UserIcon, BookOpen, Loader } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingUp, User as UserIcon, BookOpen, Loader, Globe, ArrowUpRight, Zap } from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { api } from '../../services/api';
 
@@ -20,7 +20,6 @@ const ExplorePage = () => {
         init();
     }, [refreshExplore]);
 
-    // Helper to get unique authors from public notes
     const getTopAuthors = () => {
         const authorsMap = new Map();
         exploreNotes.forEach(note => {
@@ -30,13 +29,14 @@ const ExplorePage = () => {
                 authorsMap.set(author._id, {
                     username: author.username,
                     count: (existing?.count || 0) + 1,
-                    id: author._id
+                    id: author._id,
+                    bio: author.bio || 'Contributing to the global brain.'
                 });
             }
         });
         return Array.from(authorsMap.values())
             .sort((a, b) => b.count - a.count)
-            .slice(0, 5);
+            .slice(0, 6);
     };
 
     const topAuthors = getTopAuthors();
@@ -44,13 +44,12 @@ const ExplorePage = () => {
     const handleSaveToWorkspace = async (noteId) => {
         try {
             const res = await api.saveNoteToWorkspace(noteId);
-            // Refresh local notes so it shows up in sidebar
             const allNotesRes = await api.getAllNotes();
             setNotes(allNotesRes.data);
             setActiveNoteId(res.data._id);
             setCurrentView('workspace');
         } catch (err) {
-            alert('Failed to save note to your workspace.');
+            console.error(err);
         }
     };
 
@@ -60,128 +59,142 @@ const ExplorePage = () => {
     };
 
     const NoteCard = ({ note }) => (
-        <div key={note._id} className="p-6 bg-slate-800/40 rounded-xl border border-slate-700 hover:bg-slate-800/80 transition cursor-pointer group flex flex-col justify-between min-h-[160px] shadow-lg hover:border-indigo-500/30">
-            <div>
-                <h4 className="font-semibold text-lg text-slate-100 group-hover:text-primary transition line-clamp-1">{note.title || 'Untitled Note'}</h4>
-                <div className="flex gap-2 mt-3 flex-wrap">
-                    {note.tags?.length > 0 ? (
-                        note.tags.slice(0, 3).map(t => <span key={t} className="text-[10px] bg-slate-700/50 px-2 py-1 rounded text-slate-400 font-medium">#{t}</span>)
-                    ) : (
-                        <span className="text-[10px] text-slate-600 uppercase font-semibold tracking-wider">No Tags</span>
-                    )}
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="group relative p-6 bg-slate-900/40 border border-slate-800 rounded-2xl hover:border-indigo-500/50 hover:bg-slate-900/60 transition-all duration-300 shadow-xl overflow-hidden"
+        >
+            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <ArrowUpRight size={18} className="text-indigo-400" />
+            </div>
+
+            <div className="flex flex-col h-full">
+                <div className="flex-1">
+                    <h4 className="text-lg font-black text-white group-hover:text-indigo-400 transition-colors line-clamp-1 mb-3">{note.title || 'Untitled'}</h4>
+                    <div className="flex gap-2 mb-6 flex-wrap">
+                        {note.tags?.slice(0, 2).map(t => (
+                            <span key={t} className="text-[9px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-400 px-2.5 py-1 rounded-full border border-indigo-500/20">
+                                {t}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-800/50">
+                    <div className="flex items-center justify-between mb-4">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handleViewAuthor(note.authorId?._id); }}
+                            className="flex items-center gap-2 group/author"
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-[10px] font-black text-white shadow-lg">
+                                {note.authorId?.username?.[0]?.toUpperCase()}
+                            </div>
+                            <div className="text-left">
+                                <p className="text-[11px] font-black text-slate-300 group-hover/author:text-white transition-colors">{note.authorId?.username}</p>
+                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-tight">Active Author</p>
+                            </div>
+                        </button>
+                        <span className="text-[10px] font-bold text-slate-600">{new Date(note.createdAt).toLocaleDateString()}</span>
+                    </div>
+
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleSaveToWorkspace(note._id); }}
+                        className="w-full py-2.5 bg-white text-slate-950 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-500 hover:text-white transition-all transform active:scale-95 shadow-lg shadow-white/5"
+                    >
+                        Save To Workspace
+                    </button>
                 </div>
             </div>
-            <div>
-                <div className="flex items-center justify-between mt-6 pb-2 border-b border-slate-700/30">
-                    <span className="text-xs font-semibold text-slate-400 flex items-center gap-2 hover:text-white transition-colors" onClick={(e) => { e.stopPropagation(); handleViewAuthor(note.authorId?._id); }}>
-                        <div className="w-6 h-6 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-[10px] text-white">
-                            {note.authorId?.username?.[0]?.toUpperCase()}
-                        </div>
-                        {note.authorId?.username || 'Anonymous'}
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-medium">{new Date(note.createdAt).toLocaleDateString()}</span>
-                </div>
-                <button
-                    onClick={(e) => { e.stopPropagation(); handleSaveToWorkspace(note._id); }}
-                    className="w-full mt-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider text-indigo-400 hover:bg-primary hover:text-white hover:border-primary transition-all active:scale-95"
-                >
-                    Save to Workspace
-                </button>
-            </div>
-        </div>
+        </motion.div>
     );
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex-1 bg-background h-screen overflow-y-auto p-12 text-white border-r border-slate-700/50 w-full scrollbar-hide"
-        >
-            <div className="flex items-center justify-between mb-10">
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-indigo-500/20 rounded-xl text-primary shadow-inner">
-                        <TrendingUp size={24} />
-                    </div>
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Community Insights</h2>
-                        <p className="text-slate-400 text-sm">Discover and save collective knowledge from authors worldwide.</p>
-                    </div>
-                </div>
-                <button
-                    onClick={() => {
-                        setLoading(true);
-                        refreshExplore().finally(() => setLoading(false));
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition border border-slate-700 shadow-sm"
-                >
-                    <TrendingUp size={16} className={loading ? 'animate-spin' : ''} />
-                    {loading ? 'Refreshing...' : 'Refresh Insights'}
-                </button>
-            </div>
-
-            {loading ? (
-                <div className="flex flex-col items-center justify-center py-24 opacity-50">
-                    <Loader className="animate-spin mb-4 text-primary" size={40} />
-                    <p className="text-slate-400 font-medium tracking-wide">Synthesizing community feed...</p>
-                </div>
-            ) : (
-                <div className="space-y-16">
-                    {/* Following Feed */}
-                    {followingNotes.length > 0 && (
+        <div className="flex-1 bg-[#020617] h-screen overflow-y-auto w-full font-outfit relative">
+            {/* Background Texture */}
+            <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
+            
+            <div className="max-w-7xl mx-auto p-12 relative z-10">
+                <div className="flex items-center justify-between mb-16">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-indigo-600/10 rounded-2xl flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-2xl">
+                            <Globe size={28} />
+                        </div>
                         <div>
-                            <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-indigo-100 uppercase tracking-widest text-xs">
-                                <UserIcon size={14} className="text-indigo-400" /> From Authors You Follow
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {followingNotes.map(note => (
-                                    <NoteCard key={note._id} note={note} />
-                                ))}
-                            </div>
+                            <h2 className="text-4xl font-black tracking-tight text-white uppercase italic">Community <span className="text-indigo-500">Hub</span></h2>
+                            <p className="text-slate-500 font-bold tracking-wide uppercase text-[10px]">Access the collective intelligence of NexNote users</p>
                         </div>
-                    )}
-
-                    {/* Trending Notes Grid */}
-                    <div>
-                        <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-indigo-100 uppercase tracking-widest text-xs">
-                            <BookOpen size={14} className="text-accent" /> Trending Insights
-                        </h3>
-                        {exploreNotes.length === 0 ? (
-                            <div className="p-16 bg-slate-800/20 rounded-3xl border-2 border-dashed border-slate-700/50 text-center">
-                                <p className="text-slate-500 font-medium italic">The village is quiet. Be the first to publish a note!</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {exploreNotes.map(note => (
-                                    <NoteCard key={note._id} note={note} />
-                                ))}
-                            </div>
-                        )}
                     </div>
-
-                    {/* Top Authors */}
-                    {topAuthors.length > 0 && (
-                        <div className="pb-12">
-                            <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-indigo-100 uppercase tracking-widest text-xs">
-                                <UserIcon size={14} className="text-emerald-400" /> Notable Contributors
-                            </h3>
-                            <div className="flex flex-wrap gap-4">
-                                {topAuthors.map((author, i) => (
-                                    <div key={i} className="flex items-center gap-4 bg-slate-800/30 border border-slate-700/50 p-4 rounded-2xl cursor-pointer hover:bg-slate-800/60 transition-all hover:border-indigo-500/30" onClick={() => handleViewAuthor(author.id)}>
-                                        <div className="w-12 h-12 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl flex items-center justify-center text-primary font-bold">
-                                            {author.username?.[0]?.toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-sm text-white">{author.username}</h4>
-                                            <p className="text-[11px] text-slate-500 font-medium">{author.count} public insights</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    
+                    <button
+                        onClick={() => { setLoading(true); refreshExplore().finally(() => setLoading(false)); }}
+                        className="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-white hover:border-indigo-500/50 transition-all flex items-center gap-3"
+                    >
+                        {loading ? <Loader size={14} className="animate-spin" /> : <Zap size={14} className="text-indigo-400" />}
+                        Sync Network
+                    </button>
                 </div>
-            )}
-        </motion.div>
+
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-32">
+                        <Loader className="animate-spin text-indigo-500 mb-6" size={48} />
+                        <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs">Connecting to Node Feed...</p>
+                    </div>
+                ) : (
+                    <div className="space-y-24">
+                        {/* Authors Showcase */}
+                        {topAuthors.length > 0 && (
+                            <section>
+                                <div className="flex items-center gap-3 mb-8">
+                                    <UserIcon size={16} className="text-indigo-500" />
+                                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">Notable Contributors</h3>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {topAuthors.map((author, i) => (
+                                        <motion.div 
+                                            key={i} 
+                                            whileHover={{ y: -5 }}
+                                            onClick={() => handleViewAuthor(author.id)}
+                                            className="group flex flex-col p-6 bg-slate-900/20 border border-slate-800/50 rounded-3xl cursor-pointer hover:bg-slate-900/40 hover:border-indigo-500/30 transition-all duration-500"
+                                        >
+                                            <div className="flex items-center gap-4 mb-4">
+                                                <div className="w-14 h-14 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-white text-xl font-black shadow-xl group-hover:scale-110 transition-transform">
+                                                    {author.username?.[0]?.toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-black text-white group-hover:text-indigo-400 transition-colors">{author.username}</h4>
+                                                    <p className="text-[10px] font-bold text-slate-600 uppercase">{author.count} Public Insights</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-[12px] text-slate-500 font-bold leading-relaxed line-clamp-2 italic">"{author.bio}"</p>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Trending Notes */}
+                        <section>
+                            <div className="flex items-center gap-3 mb-8">
+                                <TrendingUp size={16} className="text-purple-500" />
+                                <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">Trending Intelligence</h3>
+                            </div>
+                            
+                            {exploreNotes.length === 0 ? (
+                                <div className="p-20 bg-slate-900/20 rounded-[40px] border-2 border-dashed border-slate-800/50 text-center">
+                                    <p className="text-slate-600 font-black uppercase tracking-widest text-xs">The network is currently silent.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {exploreNotes.map(note => (
+                                        <NoteCard key={note._id} note={note} />
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 };
 

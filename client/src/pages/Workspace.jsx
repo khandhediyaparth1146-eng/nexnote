@@ -11,6 +11,7 @@ import AllNotes from './AllNotes';
 import GroupManager from '../components/groups/GroupManager';
 import ProfilePage from './ProfilePage';
 import { useWorkspace } from '../context/WorkspaceContext';
+import MobileNav from '../components/layout/MobileNav';
 
 const Workspace = () => {
     const { currentView, refreshNotes } = useWorkspace();
@@ -20,18 +21,24 @@ const Workspace = () => {
     }, [refreshNotes]);
 
     return (
-        <div className="flex flex-row h-screen w-full bg-background overflow-hidden text-text font-sans">
+        <div className="flex flex-col md:flex-row h-screen w-full bg-[#030712] overflow-hidden text-slate-200 font-outfit relative">
             <Sidebar />
-            {currentView === 'workspace' && <Editor />}
-            {currentView === 'allnotes' && <AllNotes />}
-            {currentView === 'graph' && <KnowledgeGraph />}
-            {currentView === 'analytics' && <AnalyticsDashboard />}
-            {currentView === 'explore' && <ExplorePage />}
-            {currentView === 'author' && <AuthorProfile />}
-            {currentView === 'study' && <StudyMode />}
-            {currentView === 'groups' && <GroupManager />}
-            {currentView === 'profile' && <ProfilePage />}
+            
+            {/* Main Content Area - padded at bottom on mobile to account for MobileNav */}
+            <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] md:h-screen overflow-hidden">
+                {currentView === 'workspace' && <Editor />}
+                {currentView === 'allnotes' && <AllNotes />}
+                {currentView === 'graph' && <KnowledgeGraph />}
+                {currentView === 'analytics' && <AnalyticsDashboard />}
+                {currentView === 'explore' && <ExplorePage />}
+                {currentView === 'author' && <AuthorProfile />}
+                {currentView === 'study' && <StudyMode />}
+                {currentView === 'groups' && <GroupManager />}
+                {currentView === 'profile' && <ProfilePage />}
+            </div>
+
             <AIPanel />
+            <MobileNav />
         </div>
     );
 };

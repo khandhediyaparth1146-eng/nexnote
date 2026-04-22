@@ -10,9 +10,27 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/nexnote')
-    .then(() => console.log('📦 Connected to MongoDB'))
-    .catch(err => console.warn('⚠️ Could not connect to MongoDB:', err.message));
+const { MongoMemoryServer } = require('mongodb-memory-server');
+
+const connectDB = async () => {
+    try {
+        let uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/nexnote';
+        // If it's the default local URI and mongo isn't running, we spin up in-memory DB
+        if (uri.includes('127.0.0.1') || uri.includes('localhost')) {
+            console.log('🔄 Starting in-memory MongoDB server...');
+            const mongoServer = await MongoMemoryServer.create();
+            uri = mongoServer.getUri();
+            await mongoose.connect(uri);
+            console.log('📦 Connected to IN-MEMORY MongoDB');
+        } else {
+            await mongoose.connect(uri);
+            console.log('📦 Connected to MongoDB');
+        }
+    } catch (err) {
+        console.warn('⚠️ Could not connect to MongoDB:', err.message);
+    }
+};
+connectDB();
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -25,21 +43,9 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', database: isConnected ? 'connected' : 'disconnected' });
 });
 
-// Public Explore Route directly routed to notes
-app.get('/api/explore', async (req, res) => {
-    try {
-        const Note = require('./models/Note');
-        const notes = await Note.find({ visibility: 'public' })
-            .populate('authorId', 'username')
-            .sort({ createdAt: -1 });
-        res.json(notes);
-    } catch (e) {
-        res.status(500).json({ error: 'Failed to fetch public notes' });
-    }
-});
 
 // ─── Start ─────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
     console.log(`🚀 NexNote backend running on http://localhost:${PORT}`);
 });

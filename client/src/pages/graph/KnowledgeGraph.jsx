@@ -8,10 +8,10 @@ const KnowledgeGraph = () => {
 
     const graphData = useMemo(() => {
         const nodes = notes.map(n => ({
-            id: n.id,
+            id: n._id,
             name: n.title,
-            val: n.content.length > 500 ? 20 : 10,
-            group: n.tags[0] || 'General'
+            val: n.content?.length > 500 ? 20 : 10,
+            group: n.tags?.[0] || 'General'
         }));
 
         const links = [];
@@ -21,8 +21,8 @@ const KnowledgeGraph = () => {
                 const sharedTags = notes[i].tags.filter(t => notes[j].tags.includes(t));
                 if (sharedTags.length > 0) {
                     links.push({
-                        source: notes[i].id,
-                        target: notes[j].id,
+                        source: notes[i]._id,
+                        target: notes[j]._id,
                         value: sharedTags.length * 2
                     });
                 }

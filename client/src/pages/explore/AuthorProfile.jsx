@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, FileText, Map as MapIcon, Users, Loader, TrendingUp, ChevronLeft } from 'lucide-react';
+import { User, FileText, Map as MapIcon, Users, Loader, TrendingUp, ChevronLeft, Globe, Award, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { api } from '../../services/api';
 
@@ -46,15 +47,15 @@ const AuthorProfile = () => {
                 setFollowersCount(prev => prev + 1);
             }
         } catch (err) {
-            alert('Failed to update follow status');
+            console.error(err);
         }
     };
 
     if (loading) {
         return (
-            <div className="flex-1 bg-background h-screen flex flex-col items-center justify-center opacity-50">
-                <Loader className="animate-spin mb-4" size={32} />
-                <p>Loading author community profile...</p>
+            <div className="flex-1 bg-[#020617] h-screen flex flex-col items-center justify-center">
+                <Loader className="animate-spin text-indigo-500 mb-6" size={48} />
+                <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs">Synchronizing Author Node...</p>
             </div>
         );
     }
@@ -64,97 +65,119 @@ const AuthorProfile = () => {
     const isSelf = currentUser.id === selectedAuthorId;
 
     return (
-        <div className="flex-1 bg-background h-screen overflow-y-auto w-full text-white border-r border-slate-700/50 scrollbar-hide">
-            {/* Header / Cover */}
-            <div className="h-48 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative">
+        <div className="flex-1 bg-[#020617] h-screen overflow-y-auto w-full text-white font-outfit scrollbar-hide relative">
+            {/* Dynamic Header */}
+            <div className="h-64 w-full bg-gradient-to-br from-indigo-900 via-slate-950 to-purple-950 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05]" />
+                <motion.div 
+                    animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
+                    transition={{ duration: 10, repeat: Infinity }}
+                    className="absolute -top-32 -right-32 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px]" 
+                />
+                
                 <button
                     onClick={() => setCurrentView('explore')}
-                    className="absolute top-6 left-8 bg-black/30 hover:bg-black/50 p-2 rounded-full backdrop-blur-md transition-all text-white border border-white/20"
+                    className="absolute top-8 left-8 flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest transition-all z-20"
                 >
-                    <ChevronLeft size={20} />
+                    <ChevronLeft size={16} /> Back To Hub
                 </button>
             </div>
 
-            <div className="max-w-4xl mx-auto px-8 py-4 -translate-y-16">
-                <div className="flex justify-between items-end mb-8 px-2">
-                    <div className="w-32 h-32 bg-slate-900 border-8 border-slate-900 rounded-full flex items-center justify-center shadow-2xl relative overflow-hidden group">
-                        <div className="w-full h-full bg-gradient-to-tr from-primary to-accent grayscale group-hover:grayscale-0 transition-all duration-500" />
-                        <User size={64} className="text-white absolute z-10 opacity-80" />
+            <div className="max-w-5xl mx-auto px-12 relative z-10 -translate-y-24">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+                    <div className="flex flex-col md:flex-row items-center md:items-end gap-8">
+                        <div className="w-40 h-40 bg-slate-950 p-2 rounded-[40px] shadow-2xl relative">
+                            <div className="w-full h-full bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-[32px] flex items-center justify-center text-5xl font-black text-white">
+                                {profile.username?.[0]?.toUpperCase()}
+                            </div>
+                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-emerald-500 border-4 border-slate-950 rounded-full flex items-center justify-center">
+                                <Award size={18} className="text-white" />
+                            </div>
+                        </div>
+                        
+                        <div className="text-center md:text-left pb-4">
+                            <div className="flex items-center gap-3 justify-center md:justify-start">
+                                <h2 className="text-5xl font-black tracking-tight">{profile.username}</h2>
+                                {isFollowing && <span className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-[9px] font-black uppercase tracking-widest text-indigo-400">Following</span>}
+                            </div>
+                            <p className="text-slate-400 mt-4 text-xl font-medium max-w-xl leading-relaxed italic">
+                                "{profile.bio || "This NexNote user is a silent observer in the global knowledge network."}"
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex gap-3 mb-4">
-                        {!isSelf && (
-                            <button
-                                onClick={handleFollow}
-                                className={`px-6 py-2.5 font-semibold rounded-xl shadow-lg transition-all active:scale-95 ${isFollowing
-                                        ? 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'
-                                        : 'bg-primary text-white shadow-indigo-500/20 hover:bg-indigo-600'
-                                    }`}
-                            >
-                                {isFollowing ? 'Unfollow' : 'Follow Author'}
-                            </button>
-                        )}
-                        <button className="p-2.5 bg-slate-800 border border-slate-700 rounded-xl hover:bg-slate-700 transition" title="Report">
-                            <Users size={18} className="text-slate-400" />
+
+                    {!isSelf && (
+                        <button
+                            onClick={handleFollow}
+                            className={`px-10 py-4 font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-2xl transition-all active:scale-95 mb-4 ${isFollowing
+                                    ? 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'
+                                    : 'bg-white text-slate-950 hover:bg-indigo-500 hover:text-white shadow-white/5'
+                                }`}
+                        >
+                            {isFollowing ? 'Unfollow' : 'Follow Author'}
                         </button>
-                    </div>
+                    )}
                 </div>
 
-                <div className="mb-12 px-2">
-                    <h2 className="text-4xl font-bold tracking-tight">{profile.username}</h2>
-                    <p className="text-slate-400 mt-3 text-lg max-w-2xl leading-relaxed">
-                        {profile.bio || "This NexNote user hasn't added a bio yet. They contribute to the public knowledge system."}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-6 mt-8">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/40 rounded-full border border-slate-700/50">
-                            <Users size={16} className="text-slate-500" />
-                            <span className="font-bold text-slate-200">{followersCount}</span>
-                            <span className="text-sm text-slate-500">Followers</span>
-                        </div>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/40 rounded-full border border-slate-700/50">
-                            <FileText size={16} className="text-slate-500" />
-                            <span className="font-bold text-slate-200">{notes.length}</span>
-                            <span className="text-sm text-slate-500">Public Notes</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-500 text-sm">
-                            <TrendingUp size={16} />
-                            <span>Joined {new Date(profile.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</span>
+                {/* Stats Bar */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-16">
+                    <div className="bg-slate-900/40 border border-slate-800/50 p-6 rounded-3xl backdrop-blur-md">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Network Followers</p>
+                        <h4 className="text-3xl font-black text-white">{followersCount}</h4>
+                    </div>
+                    <div className="bg-slate-900/40 border border-slate-800/50 p-6 rounded-3xl backdrop-blur-md">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Public Insights</p>
+                        <h4 className="text-3xl font-black text-white">{notes.length}</h4>
+                    </div>
+                    <div className="bg-slate-900/40 border border-slate-800/50 p-6 rounded-3xl backdrop-blur-md flex flex-col justify-center">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Node Membership</p>
+                        <div className="flex items-center gap-2 text-indigo-400 font-black text-sm">
+                            <Calendar size={14} />
+                            Since {new Date(profile.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
                         </div>
                     </div>
                 </div>
 
-                <div className="px-2">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2 section-line">
-                        Published Insights
-                    </h3>
+                {/* Notes Grid */}
+                <section>
+                    <div className="flex items-center justify-between mb-8">
+                        <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                            <Globe size={14} className="text-indigo-500" /> Published Network Nodes
+                        </h3>
+                        <div className="h-px flex-1 bg-slate-800/50 ml-6" />
+                    </div>
 
                     {notes.length === 0 ? (
-                        <div className="py-20 text-center border-2 border-dashed border-slate-800 rounded-3xl">
-                            <p className="text-slate-600">No public notes published yet.</p>
+                        <div className="py-24 text-center border-2 border-dashed border-slate-800/50 rounded-[40px]">
+                            <p className="text-slate-600 font-black uppercase tracking-widest text-xs italic">This author has not yet committed to the public node.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {notes.map(note => (
-                                <div key={note._id} className="p-6 bg-[#111827] border border-slate-800 rounded-2xl hover:border-indigo-500/50 hover:bg-[#111827]/80 transition-all cursor-pointer group shadow-lg">
-                                    <h3 className="text-lg font-bold text-slate-100 group-hover:text-primary transition">{note.title || "Untitled Insight"}</h3>
-                                    <p className="text-sm text-slate-400 mt-3 line-clamp-2 leading-relaxed">
-                                        {note.content?.slice(0, 150) || "No preview available..."}
+                                <motion.div 
+                                    key={note._id} 
+                                    whileHover={{ y: -5 }}
+                                    className="p-8 bg-slate-900/30 border border-slate-800/50 rounded-[32px] hover:border-indigo-500/30 transition-all shadow-xl group"
+                                >
+                                    <h3 className="text-xl font-black text-white group-hover:text-indigo-400 transition-colors mb-4">{note.title || "Untitled Node"}</h3>
+                                    <p className="text-sm text-slate-500 font-bold leading-relaxed line-clamp-3 mb-8 italic">
+                                        {note.content?.slice(0, 180) || "Access restricted or no preview content available..."}
                                     </p>
-                                    <div className="flex items-center justify-between mt-6">
-                                        <div className="flex gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                    <div className="flex items-center justify-between pt-6 border-t border-slate-800/50">
+                                        <div className="flex gap-2">
                                             {note.tags?.slice(0, 2).map(tag => (
-                                                <span key={tag} className="bg-slate-800 px-2 py-1 rounded">#{tag}</span>
+                                                <span key={tag} className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">#{tag}</span>
                                             ))}
                                         </div>
-                                        <span className="text-[10px] text-slate-600 font-medium">
+                                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-tighter">
                                             {new Date(note.createdAt).toLocaleDateString()}
                                         </span>
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
                     )}
-                </div>
+                </section>
             </div>
         </div>
     );

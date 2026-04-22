@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE = 'http://localhost:5000/api';
+const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+const AI_BASE = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000';
 
 // Interceptor to add auth token
 axios.interceptors.request.use((config) => {
@@ -39,4 +40,7 @@ export const api = {
 
     // Health
     health: () => axios.get(`${BASE}/health`),
+
+    // AI Microservice
+    analyzeNote: (text) => axios.post(`${AI_BASE}/analyze`, { text }),
 };

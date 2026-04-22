@@ -1,8 +1,17 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import spacy
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="NexNote AI Microservice")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Note: Load spacy model (assuming user will run `python -m spacy download en_core_web_sm`)
 # For the sake of MVP completeness, we'll try to load, or fallback
@@ -37,4 +46,6 @@ def analyze_text(content: NoteContent):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

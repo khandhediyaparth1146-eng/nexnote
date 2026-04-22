@@ -7,19 +7,26 @@ const LandingPage = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-background text-white font-sans overflow-y-auto selection:bg-primary/30">
-            {/* Nav */}
-            <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
+        <div className="h-screen bg-[#030712] text-white font-sans overflow-hidden selection:bg-primary/30 relative">
+            {/* Ultra-High Performance CSS Animated Background */}
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                <div className="absolute inset-0 bg-[#030712]" />
+                <div className="absolute inset-0 opacity-30 animate-pulse-slow">
+                    <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[100px]" />
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-600/10 rounded-full blur-[100px]" />
+                </div>
+            </div>
+
+            {/* Content Container (Scrollable) */}
+            <div className="relative h-full overflow-y-auto z-10 scrollbar-hide">
+                <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
                         <Sparkles className="w-4 h-4 text-white" />
                     </div>
                     <span className="font-bold text-xl tracking-tight">NexNote</span>
                 </div>
-                <div className="flex gap-4">
-                    <button onClick={() => navigate('/auth')} className="px-4 py-2 text-sm text-slate-300 hover:text-white transition">Log in</button>
-                    <button onClick={() => navigate('/auth')} className="px-4 py-2 text-sm bg-white text-slate-900 font-medium rounded-full hover:bg-slate-200 transition">Get Started</button>
-                </div>
+
             </nav>
 
             {/* Hero Section */}
@@ -49,13 +56,26 @@ const LandingPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="flex flex-col sm:flex-row gap-4"
+                    className="relative group"
                 >
-                    <button onClick={() => navigate('/auth')} className="flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white rounded-full font-medium hover:bg-indigo-600 transition shadow-lg shadow-primary/25">
-                        Start for free <ArrowRight size={18} />
-                    </button>
-                    <button className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-800 text-white rounded-full font-medium hover:bg-slate-700 transition border border-slate-700">
-                        View Demo
+                    {/* Subtle outer glow */}
+                    <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                    
+                    <button 
+                        onClick={() => navigate('/auth')} 
+                        className="relative flex items-center justify-center gap-3 px-12 py-6 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl font-black text-xl hover:from-indigo-500 hover:to-purple-600 transition-all shadow-2xl shadow-indigo-600/40 hover:scale-[1.05] active:scale-[0.95] overflow-hidden"
+                    >
+                        {/* Shimmer effect */}
+                        <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white/10 opacity-40 group-hover:animate-shimmer" />
+                        
+                        <span className="relative z-10">Sign In or Register</span>
+                        <motion.div
+                            animate={{ x: [0, 5, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                            className="relative z-10"
+                        >
+                            <ArrowRight size={26} strokeWidth={3} />
+                        </motion.div>
                     </button>
                 </motion.div>
 
@@ -84,6 +104,7 @@ const LandingPage = () => {
                 </motion.div>
             </main>
         </div>
+    </div>
     );
 };
 

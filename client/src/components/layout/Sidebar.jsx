@@ -1,30 +1,27 @@
-import { Home, Edit3, Plus, Settings, Sparkles, BookOpen, User, GitCommit, Search, Compass, LayoutGrid, Trash2, Save, Users, LogOut } from 'lucide-react';
+import { Home, LayoutGrid, Compass, BookOpen, BarChart3, User, LogOut, Sparkles, Plus, Search, Users, Zap } from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const NavItem = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}
-        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${active ? 'bg-primary/10 text-primary shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'}`}>
-        {icon}
+        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group ${
+            active 
+            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
+            : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+        }`}
+    >
+        <div className={`${active ? 'text-white' : 'text-slate-500 group-hover:text-indigo-400'} transition-colors`}>
+            {icon}
+        </div>
         {label}
     </button>
 );
 
 const Sidebar = () => {
     const navigate = useNavigate();
-    const {
-        filteredNotes,
-        activeNoteId,
-        setActiveNoteId,
-        createNote,
-        deleteNote,
-        saveNote,
-        searchQuery,
-        setSearchQuery,
-        currentView,
-        setCurrentView
-    } = useWorkspace();
+    const { createNote, currentView, setCurrentView } = useWorkspace();
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -33,39 +30,65 @@ const Sidebar = () => {
     };
 
     return (
-        <div className="w-64 h-screen bg-surface border-r border-slate-700/50 flex flex-col pt-6 pb-4 px-4 hidden md:flex shrink-0 overflow-y-auto">
-            <div className="flex items-center gap-3 px-2 mb-8 shrink-0">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-                    <Sparkles className="w-4 h-4 text-white" />
+        <div className="w-64 h-screen bg-[#020617] border-r border-slate-900 flex flex-col pt-8 pb-6 px-4 hidden md:flex shrink-0 font-outfit">
+            {/* Logo */}
+            <div className="flex items-center gap-3 px-3 mb-10 shrink-0 cursor-pointer" onClick={() => setCurrentView('workspace')}>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <Sparkles size={20} className="text-white" />
                 </div>
-                <span className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">NexNote</span>
+                <span className="text-xl font-black text-white tracking-tight">Nex<span className="text-indigo-400">Note</span></span>
             </div>
 
-
-            <button
+            {/* Action */}
+            <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={createNote}
-                className="w-full mb-6 flex items-center justify-center gap-2 bg-primary hover:bg-indigo-600 text-white text-sm font-medium py-2 rounded-lg transition shadow-lg shadow-primary/20">
-                <Plus size={16} /> New Note
-            </button>
+                className="w-full mb-10 flex items-center justify-center gap-2 bg-white text-slate-950 text-sm font-bold py-3 rounded-xl transition shadow-xl shadow-white/5 hover:bg-slate-100"
+            >
+                <Plus size={18} /> New Note
+            </motion.button>
 
-            <nav className="flex-1 space-y-1 overflow-y-auto pr-1 custom-scrollbar">
-                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">Views</div>
-                <NavItem icon={<Home size={16} />} label="Workspace" active={currentView === 'workspace'} onClick={() => setCurrentView('workspace')} />
-                <NavItem icon={<LayoutGrid size={16} />} label="All Notes" active={currentView === 'allnotes'} onClick={() => setCurrentView('allnotes')} />
-                <NavItem icon={<Compass size={16} />} label="Explore" active={currentView === 'explore'} onClick={() => setCurrentView('explore')} />
+            {/* Navigation */}
+            <nav className="flex-1 space-y-1.5 overflow-y-auto pr-1 scrollbar-hide">
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 px-4">Workspace</p>
+                <NavItem icon={<Home size={18} />} label="Editor" active={currentView === 'workspace'} onClick={() => setCurrentView('workspace')} />
+                <NavItem icon={<LayoutGrid size={18} />} label="All Notes" active={currentView === 'allnotes'} onClick={() => setCurrentView('allnotes')} />
+                <NavItem icon={<BookOpen size={18} />} label="Study Decks" active={currentView === 'study'} onClick={() => setCurrentView('study')} />
+                <NavItem icon={<BarChart3 size={18} />} label="Analytics" active={currentView === 'analytics'} onClick={() => setCurrentView('analytics')} />
+                
+                <div className="h-4" />
+                
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 px-4">Community</p>
+                <NavItem icon={<Compass size={18} />} label="Explore" active={currentView === 'explore'} onClick={() => setCurrentView('explore')} />
+                <NavItem icon={<Users size={18} />} label="Groups" active={currentView === 'groups'} onClick={() => setCurrentView('groups')} />
 
-                <NavItem icon={<BookOpen size={16} />} label="Study Decks" active={currentView === 'study'} onClick={() => setCurrentView('study')} />
-
-                <NavItem icon={<BookOpen size={16} />} label="Analytics" active={currentView === 'analytics'} onClick={() => setCurrentView('analytics')} />
-
+                {/* Gamification: Streak */}
+                <div className="mt-8 mx-2 p-4 bg-indigo-600/10 border border-indigo-600/20 rounded-2xl">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Active Streak</span>
+                        <Zap size={14} className="text-amber-400 fill-amber-400" />
+                    </div>
+                    <div className="flex items-end gap-2">
+                        <span className="text-2xl font-black text-white">12</span>
+                        <span className="text-[10px] font-bold text-slate-500 mb-1 uppercase">Days</span>
+                    </div>
+                </div>
             </nav>
 
-            <div className="mt-6 pt-4 border-t border-slate-700/50 shrink-0 space-y-1">
-                <NavItem icon={<User size={18} />} label="Profile" active={currentView === 'profile'} onClick={() => setCurrentView('profile')} />
-                <NavItem icon={<LogOut size={18} />} label="Logout" onClick={handleLogout} />
+            {/* Footer */}
+            <div className="mt-6 pt-6 border-t border-slate-900 shrink-0 space-y-1.5">
+                <NavItem icon={<User size={18} />} label="My Profile" active={currentView === 'profile'} onClick={() => setCurrentView('profile')} />
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/5 transition-all duration-200"
+                >
+                    <LogOut size={18} /> Logout
+                </button>
             </div>
         </div>
     );
 };
 
 export default Sidebar;
+

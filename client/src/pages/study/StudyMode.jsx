@@ -67,7 +67,7 @@ const StudyMode = () => {
     };
 
     return (
-        <div className="flex-1 bg-background h-screen overflow-y-auto flex flex-col items-center p-10 w-full border-r border-slate-700/50">
+        <div className="flex-1 bg-background h-full overflow-y-auto flex flex-col items-center p-4 md:p-10 w-full border-r border-slate-700/50 pb-20 md:pb-10">
 
             {/* Header */}
             <div className="w-full max-w-2xl mb-8">
