@@ -113,36 +113,33 @@ const LandingPage = () => {
             <footer className="border-t border-slate-800/50 bg-[#030712]/80 backdrop-blur-md relative z-10 py-12 px-8">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
                     
-                    {/* Brand & Contact */}
-                    <div className="flex flex-col items-center md:items-start gap-4">
+                    {/* Brand & Info merged */}
+                    <div className="flex flex-col items-center md:items-start gap-3">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
-                                <Sparkles className="w-4 h-4 text-white" />
+                            <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                                <Sparkles className="w-3 h-3 text-white" />
                             </div>
-                            <span className="font-bold text-xl tracking-tight text-white">NexNote</span>
+                            <span className="font-bold text-lg tracking-tight text-white">NexNote</span>
                         </div>
-                        <div className="space-y-1 text-slate-400 text-sm">
-                            <p>✉️ khandhediyaparth1146@gmail.com</p>
-                            <p>📞 +91 9825361146</p>
+                        <div className="text-slate-400 text-sm font-medium">
+                            <p>✉️ khandhediyaparth1146@gmail.com &nbsp;|&nbsp; 📞 +91 9825361146</p>
+                        </div>
+                        <p className="text-xs text-slate-500 tracking-wide mt-1">
+                            &copy; {new Date().getFullYear()} NexNote. All rights reserved.
+                        </p>
+                    </div>
+
+                    {/* Links & Dev merged */}
+                    <div className="flex flex-col items-center md:items-end gap-4">
+                        <div className="flex gap-6 text-sm text-slate-400 font-medium">
+                            <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
+                            <span className="hover:text-white cursor-pointer transition-colors">Terms & Conditions</span>
+                        </div>
+                        <div className="text-xs text-slate-500 font-medium tracking-wide">
+                            Developed by <span className="text-white">Parth Khandhediya</span>
                         </div>
                     </div>
 
-                    {/* Legal Links */}
-                    <div className="flex flex-col sm:flex-row gap-6 text-sm text-slate-400 font-medium">
-                        <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
-                        <span className="hover:text-white cursor-pointer transition-colors">Terms & Conditions</span>
-                    </div>
-
-                </div>
-
-                {/* Bottom Bar: Copyright & Developer */}
-                <div className="max-w-7xl mx-auto mt-12 pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-                    <div>
-                        &copy; {new Date().getFullYear()} NexNote. All rights reserved.
-                    </div>
-                    <div className="font-medium tracking-wide">
-                        Developed by <span className="text-white">Parth Khandhediya</span>
-                    </div>
                 </div>
             </footer>
         </div>
