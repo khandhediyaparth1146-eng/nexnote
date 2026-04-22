@@ -81,28 +81,54 @@ const LandingPage = () => {
 
                 {/* Feature Highlights Grid */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 w-full text-left"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-32 w-full text-left"
                 >
                     <div className="p-8 rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:bg-slate-800/50 transition">
                         <BrainCircuit className="text-primary mb-4" size={32} />
                         <h3 className="text-xl font-semibold mb-2">AI Intelligence</h3>
-                        <p className="text-slate-400">Auto-summarize, simplify complex concepts, and extract semantic keywords dynamically as you type.</p>
+                        <p className="text-slate-400 text-sm">Auto-summarize, simplify complex concepts, and extract semantic keywords dynamically as you type.</p>
                     </div>
                     <div className="p-8 rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:bg-slate-800/50 transition">
                         <Network className="text-accent mb-4" size={32} />
                         <h3 className="text-xl font-semibold mb-2">Knowledge Graph</h3>
-                        <p className="text-slate-400">Visually map how your ideas connect across different domains to find knowledge gaps.</p>
+                        <p className="text-slate-400 text-sm">Visually map how your ideas connect across different domains to find knowledge gaps.</p>
                     </div>
                     <div className="p-8 rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:bg-slate-800/50 transition">
                         <Share2 className="text-emerald-400 mb-4" size={32} />
                         <h3 className="text-xl font-semibold mb-2">Public Community</h3>
-                        <p className="text-slate-400">Share your best notes publicly or explore trending topics from leading authors across the network.</p>
+                        <p className="text-slate-400 text-sm">Share your best notes publicly or explore trending topics from leading authors across the network.</p>
+                    </div>
+                    <div className="p-8 rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:bg-slate-800/50 transition">
+                        <Sparkles className="text-purple-400 mb-4" size={32} />
+                        <h3 className="text-xl font-semibold mb-2">Study Mode</h3>
+                        <p className="text-slate-400 text-sm">Automatically generate flashcards and quizzes from your notes to accelerate learning and retention.</p>
                     </div>
                 </motion.div>
             </main>
+
+            {/* Footer */}
+            <footer className="border-t border-slate-800/50 bg-[#030712]/80 backdrop-blur-md relative z-10 py-12 px-8">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
+                            <Sparkles className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="font-bold text-lg tracking-tight text-slate-300">NexNote</span>
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-6 text-sm text-slate-500">
+                        <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
+                        <span className="hover:text-white cursor-pointer transition-colors">Terms of Service</span>
+                        <span className="hover:text-white cursor-pointer transition-colors">Contact Support</span>
+                        <span className="hover:text-white cursor-pointer transition-colors">GitHub</span>
+                    </div>
+                    <div className="text-slate-600 text-sm">
+                        &copy; {new Date().getFullYear()} NexNote. All rights reserved.
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
     );
