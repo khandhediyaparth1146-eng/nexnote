@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
     Trash, Globe, Lock, Calendar, Tag, 
-    CheckCircle2, Sparkles, Mic, MicOff
+    CheckCircle2, Sparkles, Mic, MicOff, Download
 } from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +15,16 @@ const Editor = () => {
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     const isOwner = activeNote && (activeNote.authorId === currentUser.id || activeNote.authorId?._id === currentUser.id || activeNote._id?.startsWith('local-'));
+
+    const handleExport = () => {
+        const element = document.createElement('a');
+        const file = new Blob([`# ${activeNote.title || 'Untitled'}\n\n${activeNote.content}`], { type: 'text/markdown' });
+        element.href = URL.createObjectURL(file);
+        element.download = `${(activeNote.title || 'Note').replace(/ /g, '_')}.md`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    };
 
     // Web Speech API Setup
     const handleDictation = () => {
@@ -155,6 +165,14 @@ const Editor = () => {
                             >
                                 {isListening ? <Mic size={14} /> : <MicOff size={14} />} 
                                 <span className="hidden sm:inline">{isListening ? 'Listening...' : 'Dictate'}</span>
+                            </button>
+                        )}
+                        {isOwner && (
+                            <button 
+                                onClick={handleExport}
+                                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50 transition-all"
+                            >
+                                <Download size={14} /> <span className="hidden sm:inline">Export</span>
                             </button>
                         )}
                     </div>
