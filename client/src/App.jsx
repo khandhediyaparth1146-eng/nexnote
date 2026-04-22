@@ -5,6 +5,8 @@ import LandingPage from './pages/LandingPage';
 import { WorkspaceProvider } from './context/WorkspaceContext';
 
 import AuthPage from './pages/AuthPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsConditions from './pages/TermsConditions';
 
 function App() {
     return (
@@ -14,6 +16,8 @@ function App() {
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/workspace" element={<Workspace />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsConditions />} />
                 </Routes>
             </WorkspaceProvider>
         </Router>

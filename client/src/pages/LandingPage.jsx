@@ -132,8 +132,8 @@ const LandingPage = () => {
                     {/* Links & Dev merged */}
                     <div className="flex flex-col items-center md:items-end gap-4">
                         <div className="flex gap-6 text-sm text-slate-400 font-medium">
-                            <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
-                            <span className="hover:text-white cursor-pointer transition-colors">Terms & Conditions</span>
+                            <span onClick={() => navigate('/privacy')} className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
+                            <span onClick={() => navigate('/terms')} className="hover:text-white cursor-pointer transition-colors">Terms & Conditions</span>
                         </div>
                         <div className="text-xs text-slate-500 font-medium tracking-wide">
                             Developed by <span className="text-white">Parth Khandhediya</span>
