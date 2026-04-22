@@ -24,6 +24,7 @@ const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
                 ? 'bg-slate-900 border border-slate-800 text-slate-200'
                 : 'bg-indigo-600/10 border border-indigo-600/20 text-indigo-300 ml-6'
             }`}
+            style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
         >
             <div className="flex items-center gap-2 mb-2">
                 {isAI ? <Sparkles size={12} className="text-indigo-400" /> : <div className="w-1 h-1 rounded-full bg-indigo-500" />}
@@ -163,7 +164,7 @@ const AIPanel = () => {
                 {loading && <Loader size={14} className="animate-spin text-indigo-500" />}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ overflowY: 'scroll', minHeight: 0 }}>
                 <AnimatePresence>
                     {messages.map((m, i) => (
                         <MessageBubble key={i} m={m} onInsertToNote={handleInsertToNote} isOwner={isOwner} />
