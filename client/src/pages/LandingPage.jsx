@@ -141,7 +141,7 @@ const LandingPage = () => {
                         &copy; {new Date().getFullYear()} NexNote. All rights reserved.
                     </div>
                     <div className="font-medium tracking-wide">
-                        Developed with ❤️ by <span className="text-white">Parth Khandhediya</span>
+                        Developed by <span className="text-white">Parth Khandhediya</span>
                     </div>
                 </div>
             </footer>
