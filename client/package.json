@@ -10,6 +10,7 @@
     "d3-force": "^3.0.0",
     "framer-motion": "^12.35.0",
     "lucide-react": "^0.577.0",
+    "netlify-cli": "^25.1.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-force-graph-2d": "^1.29.1",
