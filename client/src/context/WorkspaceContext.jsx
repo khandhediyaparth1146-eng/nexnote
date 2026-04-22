@@ -105,13 +105,13 @@ export const WorkspaceProvider = ({ children }) => {
             setCurrentView('workspace');
             setSaving(false);
         } catch (err) {
-            console.error('Failed to create server note:', err);
+            console.error('Failed to create server note, falling back to local:', err);
             const local = { ...payload, _id: `local-${Date.now()}`, createdAt: new Date().toISOString() };
             setNotes(prev => [local, ...prev]);
             setActiveNoteId(local._id);
             setCurrentView('workspace');
             setSaving(false);
-            alert('Cloud sync failed. Your note is currently in LOCAL mode and will be lost on refresh.');
+            // Alert removed for smoother UX
         }
     }, [setCurrentView]);
 

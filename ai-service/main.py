@@ -25,6 +25,10 @@ except OSError:
 class NoteContent(BaseModel):
     text: str
 
+@app.get("/")
+def read_root():
+    return {"message": "✨ NexNote AI Microservice is Online and Ready!"}
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "NexNote AI Microservice"}

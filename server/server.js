@@ -6,8 +6,17 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: '*', // Allows all origins, including your phone and Netlify
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+
+// Root Welcome Route
+app.get('/', (req, res) => {
+    res.send('🚀 NexNote Backend API is Running Successfully!');
+});
 
 // Connect to MongoDB
 const { MongoMemoryServer } = require('mongodb-memory-server');

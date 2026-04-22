@@ -41,6 +41,10 @@ export const api = {
     // Health
     health: () => axios.get(`${BASE}/health`),
 
+    // Auth
+    login: (data) => axios.post(`${BASE}/auth/login`, data),
+    register: (data) => axios.post(`${BASE}/auth/register`, data),
+
     // AI Microservice
     analyzeNote: (text) => axios.post(`${AI_BASE}/analyze`, { text }),
 };

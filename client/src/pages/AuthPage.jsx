@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogIn, UserPlus, Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
+import { api } from '../services/api';
 
 const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -25,27 +26,17 @@ const AuthPage = () => {
         setError('');
         setLoading(true);
 
-        const url = isLogin ? 'http://localhost:5001/api/auth/login' : 'http://localhost:5001/api/auth/register';
-
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(isLogin ? { email: formData.email, password: formData.password } : formData)
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Authentication failed');
-            }
+            const payload = isLogin ? { email: formData.email, password: formData.password } : formData;
+            const res = isLogin ? await api.login(payload) : await api.register(payload);
+            const data = res.data;
 
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
             navigate('/workspace');
         } catch (err) {
-            setError(err.message);
+            setError(err.response?.data?.error || 'Authentication failed. Please check your connection.');
         } finally {
             setLoading(false);
         }
