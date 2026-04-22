@@ -28,8 +28,22 @@ router.post('/', auth, async (req, res) => {
 
         const savedGroup = await newGroup.save();
         res.status(201).json(savedGroup);
+// Join a group
+router.post('/:id/join', auth, async (req, res) => {
+    try {
+        const group = await Group.findById(req.params.id);
+        if (!group) return res.status(404).json({ error: 'Circle not found' });
+
+        const isMember = group.members.some(m => m.user.toString() === req.user.id);
+        if (isMember) return res.status(400).json({ error: 'You are already in this circle' });
+
+        group.members.push({ user: req.user.id, role: 'member' });
+        await group.save();
+        
+        const updatedGroup = await Group.findById(req.params.id).populate('members.user', 'username');
+        res.json(updatedGroup);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to create group' });
+        res.status(500).json({ error: 'Failed to join circle' });
     }
 });
 

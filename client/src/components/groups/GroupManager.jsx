@@ -4,14 +4,7 @@ import { Users, Plus, Shield, Network, ArrowUpRight, Sparkles, X, Layout, Lock, 
 import { api } from '../../services/api';
 
 const GroupManager = () => {
-    const [groups, setGroups] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showCreate, setShowCreate] = useState(false);
-
-    // Form fields
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [groupType, setGroupType] = useState('Study Group');
+    const [selectedGroup, setSelectedGroup] = useState(null);
 
     useEffect(() => {
         fetchGroups();
@@ -60,7 +53,7 @@ const GroupManager = () => {
                     </button>
                 </div>
 
-                {/* Create Group Modal/Overlay */}
+                {/* Create Group Modal */}
                 <AnimatePresence>
                     {showCreate && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -150,6 +143,81 @@ const GroupManager = () => {
                     )}
                 </AnimatePresence>
 
+                {/* Group Detail Modal */}
+                <AnimatePresence>
+                    {selectedGroup && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-end">
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setSelectedGroup(null)}
+                                className="absolute inset-0 bg-[#030712]/80 backdrop-blur-sm"
+                            />
+                            <motion.div
+                                initial={{ x: '100%' }}
+                                animate={{ x: 0 }}
+                                exit={{ x: '100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="relative w-full max-w-2xl h-full bg-[#030712] border-l border-slate-800 shadow-2xl p-12 flex flex-col"
+                            >
+                                <div className="flex items-center justify-between mb-12">
+                                    <button onClick={() => setSelectedGroup(null)} className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors uppercase font-black text-[10px] tracking-widest">
+                                        <X size={20} /> Close Circle
+                                    </button>
+                                    <div className="flex items-center gap-2 text-indigo-400">
+                                        <Shield size={14} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Verified Intelligence Circle</span>
+                                    </div>
+                                </div>
+
+                                <div className="mb-12">
+                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-500/5 px-4 py-1.5 rounded-full border border-indigo-500/10 mb-6 inline-block">
+                                        {selectedGroup.groupType}
+                                    </span>
+                                    <h3 className="text-6xl font-black text-white italic tracking-tighter mb-6 leading-none">{selectedGroup.name}</h3>
+                                    <p className="text-slate-500 text-lg font-bold leading-relaxed">{selectedGroup.description || "Synthesizing knowledge without a defined objective..."}</p>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto pr-4 scrollbar-hide">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h4 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Circle Members ({selectedGroup.members.length})</h4>
+                                        <button className="text-indigo-400 hover:text-indigo-300 font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
+                                            <Plus size={14} /> Invite Mind
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {selectedGroup.members.map((member, i) => (
+                                            <div key={member.user?._id || i} className="flex items-center justify-between p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50 hover:border-indigo-500/30 transition-all">
+                                                <div className="flex items-center gap-5">
+                                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-black text-lg">
+                                                        {member.user?.username?.[0].toUpperCase() || "M"}
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="text-white font-black text-lg tracking-tight">{member.user?.username || "Anonymous Mind"}</h5>
+                                                        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">{member.role === 'admin' ? 'Circle Founder' : 'Researcher Node'}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    {member.role === 'admin' && (
+                                                        <span className="px-3 py-1 bg-indigo-600 rounded-lg text-[9px] font-black text-white uppercase tracking-tighter">Founder</span>
+                                                    )}
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <button className="mt-8 w-full bg-slate-900 border border-slate-800 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-500 text-slate-500 py-5 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] transition-all">
+                                    Leave Intelligence Circle
+                                </button>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
                 {/* Groups Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {loading ? (
@@ -170,6 +238,7 @@ const GroupManager = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.1 }}
                                 key={group._id} 
+                                onClick={() => setSelectedGroup(group)}
                                 className="group relative p-10 bg-slate-900/30 border border-slate-800/50 rounded-[40px] hover:border-indigo-500/30 transition-all duration-500 cursor-pointer shadow-2xl overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -196,14 +265,16 @@ const GroupManager = () => {
 
                                     <div className="mt-auto flex items-center justify-between pt-8 border-t border-slate-800/50">
                                         <div className="flex -space-x-3">
-                                            {[1, 2, 3].map(m => (
+                                            {group.members.slice(0, 3).map((member, m) => (
                                                 <div key={m} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-[#030712] flex items-center justify-center text-[10px] font-black text-slate-500">
-                                                    {String.fromCharCode(64 + m)}
+                                                    {member.user?.username?.[0].toUpperCase() || "?"}
                                                 </div>
                                             ))}
-                                            <div className="w-8 h-8 rounded-full bg-indigo-600 border-2 border-[#030712] flex items-center justify-center text-[10px] font-black text-white">
-                                                +{group.members.length}
-                                            </div>
+                                            {group.members.length > 0 && (
+                                                <div className="w-8 h-8 rounded-full bg-indigo-600 border-2 border-[#030712] flex items-center justify-center text-[10px] font-black text-white">
+                                                    +{group.members.length}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-2 text-slate-600">
                                             <Lock size={12} />
