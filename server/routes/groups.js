@@ -28,6 +28,11 @@ router.post('/', auth, async (req, res) => {
 
         const savedGroup = await newGroup.save();
         res.status(201).json(savedGroup);
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Join a group
 router.post('/:id/join', auth, async (req, res) => {
     try {
