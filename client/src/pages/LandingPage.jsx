@@ -83,7 +83,7 @@ const LandingPage = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ delay: 0.1, duration: 0.4, type: "spring", stiffness: 100 }}
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-32 w-full text-left"
                 >
                     <div className="p-8 rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:bg-slate-800/50 transition">
