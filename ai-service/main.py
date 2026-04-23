@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import spacy
 from fastapi.middleware.cors import CORSMiddleware
 import heapq
+import re
 
 app = FastAPI(title="NexNote AI Microservice")
 
@@ -14,6 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Load NLP model
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
@@ -29,47 +31,54 @@ class NoteContent(BaseModel):
 def read_root():
     return {"message": "✨ NexNote AI Microservice is Online and Ready!"}
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok", "service": "NexNote AI Microservice"}
-
 @app.post("/analyze")
 def analyze_text(content: NoteContent):
-    doc = nlp(content.text)
+    # Clean text
+    clean_text = re.sub(r'\s+', ' ', content.text).strip()
+    if len(clean_text) < 10:
+        return {"summary": "Please provide more content for a better analysis.", "keywords": [], "suggested_tags": []}
+
+    doc = nlp(clean_text)
     
-    # Keyword extraction
-    keywords = list(set([token.text.lower() for token in doc if token.pos_ in ['NOUN', 'PROPN'] and not token.is_stop and len(token.text) > 2]))
+    # 1. Keyword extraction (Improved)
+    keywords = []
+    for chunk in doc.noun_chunks:
+        if not nlp.vocab[chunk.root.text.lower()].is_stop and len(chunk.text) > 3:
+            keywords.append(chunk.text.lower())
+    
+    keywords = list(set(keywords))
     
     if content.action == "simplify":
-        # SIMPLIFY logic: Focus on the "what" in conversational tone
-        main_topic = keywords[0].title() if keywords else "the topic"
-        summary = f"Essentially, this content explores {main_topic}. It breaks down the core concepts into understandable parts, focusing on the most important details while keeping the explanation clear and straightforward."
+        # SIMPLIFY: Provide a conceptual overview
+        topic = keywords[0].title() if keywords else "the content"
+        summary = f"Essentially, this text explores the core concepts of {topic}. It breaks down complex ideas into manageable points, highlighting how these elements interact to form the main subject. The goal is to provide a clear, high-level understanding of the material without getting lost in technical jargon."
     else:
-        # SUMMARIZE logic: Extractive points
+        # SUMMARIZE: High-quality extractive summarization
         word_frequencies = {}
         for word in doc:
-            if not word.is_stop and not word.is_punct:
+            if not word.is_stop and not word.is_punct and not word.is_space:
                 word_text = word.text.lower()
                 word_frequencies[word_text] = word_frequencies.get(word_text, 0) + 1
                     
-        max_freq = max(word_frequencies.values()) if word_frequencies else 1
-        for word in word_frequencies:
-            word_frequencies[word] /= max_freq
+        if word_frequencies:
+            max_freq = max(word_frequencies.values())
+            for word in word_frequencies:
+                word_frequencies[word] /= max_freq
 
-        sentence_scores = {}
-        for sent in doc.sents:
-            for word in sent:
-                if word.text.lower() in word_frequencies:
-                    sentence_scores[sent] = sentence_scores.get(sent, 0) + word_frequencies[word.text.lower()]
+            sentence_scores = {}
+            for sent in doc.sents:
+                # Higher weight for the very first sentence (usually the thesis)
+                weight = 1.2 if sent.start == 0 else 1.0
+                for word in sent:
+                    if word.text.lower() in word_frequencies:
+                        sentence_scores[sent] = sentence_scores.get(sent, 0) + (word_frequencies[word.text.lower()] * weight)
                             
-        # Top 3 sentences for a complete summary
-        summary_sentences = heapq.nlargest(3, sentence_scores, key=sentence_scores.get)
-        summary_sentences = sorted(summary_sentences, key=lambda s: s.start)
-        summary = " ".join([sent.text.strip() for sent in summary_sentences])
-
-    # Ensure full output is returned
-    if not summary.strip():
-        summary = content.text[:2000]
+            # Pick top 4 sentences for a deep, accurate summary
+            summary_sentences = heapq.nlargest(4, sentence_scores, key=sentence_scores.get)
+            summary_sentences = sorted(summary_sentences, key=lambda s: s.start)
+            summary = " ".join([sent.text.strip() for sent in summary_sentences])
+        else:
+            summary = clean_text[:500]
 
     return {
         "keywords": keywords[:10],

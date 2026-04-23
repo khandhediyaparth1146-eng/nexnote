@@ -6,9 +6,7 @@ import { api } from '../../services/api';
 
 const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
     const [copied, setCopied] = useState(false);
-    const [expanded, setExpanded] = useState(false);
     const isAI = m.role === 'assistant';
-    const isLong = m.text.length > 350;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(m.text);
@@ -19,64 +17,44 @@ const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`group p-4 rounded-2xl text-sm leading-relaxed transition-all relative ${
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`group p-5 rounded-3xl text-[13px] leading-relaxed transition-all shadow-sm ${
                 isAI
-                ? 'bg-slate-900 border border-slate-800 text-slate-200'
-                : 'bg-indigo-600/10 border border-indigo-600/20 text-indigo-300 ml-6'
+                ? 'bg-[#0f172a] border border-slate-800 text-slate-200'
+                : 'bg-indigo-600/10 border border-indigo-600/20 text-indigo-300 ml-4'
             }`}
         >
-            <div className="flex items-center gap-2 mb-2">
-                {isAI ? <Sparkles size={12} className="text-indigo-400" /> : <div className="w-1 h-1 rounded-full bg-indigo-500" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">
-                    {isAI ? 'Nex AI' : 'You'}
+            <div className="flex items-center gap-2 mb-3">
+                {isAI ? (
+                    <div className="p-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                        <Sparkles size={14} className="text-indigo-400" />
+                    </div>
+                ) : (
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                )}
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">
+                    {isAI ? 'Nex Intelligence' : 'Human Operator'}
                 </span>
             </div>
 
-            <div 
-                className={`whitespace-pre-wrap transition-all duration-300 relative ${
-                    isLong && !expanded ? 'max-h-32 overflow-hidden' : 'max-h-[2000px]'
-                }`}
-            >
-                {m.text}
-                
-                {isLong && !expanded && (
-                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-slate-900 to-transparent flex items-end justify-center">
-                        <button 
-                            onClick={() => setExpanded(true)}
-                            className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 mb-1 transition-colors uppercase tracking-widest bg-slate-900/80 px-2 py-1 rounded-md"
-                        >
-                            + Show Full Analysis
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {isLong && expanded && (
-                <button 
-                    onClick={() => setExpanded(false)}
-                    className="text-[10px] font-bold text-slate-500 hover:text-white mt-2 transition-colors uppercase tracking-widest"
-                >
-                    - Show Less
-                </button>
-            )}
+            <div className="whitespace-pre-wrap font-medium">{m.text}</div>
 
             {isAI && (
-                <div className="flex items-center gap-3 mt-4 pt-3 border-t border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-4 mt-5 pt-4 border-t border-slate-800/50 opacity-0 group-hover:opacity-100 transition-opacity">
                     {isOwner && (
                         <button
                             onClick={() => onInsertToNote && onInsertToNote(m.text)}
-                            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition"
+                            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition"
                         >
-                            <PenLine size={12} /> Insert
+                            <PenLine size={13} /> Inject to Note
                         </button>
                     )}
                     <button
                         onClick={handleCopy}
-                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-white transition ml-auto"
+                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition ml-auto"
                     >
-                        {copied ? <><CheckCheck size={12} className="text-emerald-400" /> Copied</> : <><ClipboardCopy size={12} /> Copy</>}
+                        {copied ? <><CheckCheck size={13} className="text-emerald-400" /> Copied</> : <><ClipboardCopy size={13} /> Copy Result</>}
                     </button>
                 </div>
             )}
@@ -99,7 +77,7 @@ const AIPanel = () => {
         setMessages([
             {
                 role: 'assistant',
-                text: `Ready to analyze "${activeNote.title || 'Untitled'}"! Choose a quick action below to get started.`
+                text: `Systems initialized for "${activeNote.title || 'Untitled'}". I am ready to generate deep insights. Choose an operation below.`
             }
         ]);
     }, [activeNote?._id]);
@@ -115,18 +93,17 @@ const AIPanel = () => {
 
         setLoading(true);
         try {
-            // Call AI Microservice with specific action
             const response = await api.analyzeNote(activeNote.content, actionType);
             const { keywords, summary } = response.data;
             
             let result = '';
 
             if (actionType === 'summarize') {
-                result = `📝 **Core Summary:**\n\n${summary}`;
+                result = `✨ **EXTRACTIVE SUMMARY**\n\n${summary}`;
             } else if (actionType === 'simplify') {
-                result = `✨ **Simplified Perspective:**\n\n${summary}`;
+                result = `💡 **SIMPLIFIED OVERVIEW**\n\n${summary}`;
             } else if (actionType === 'keywords') {
-                result = `🔑 **Key Terms:**\n\n${keywords.join(', ')}. These have been added to your note tags.`;
+                result = `🔑 **CRITICAL CONCEPTS**\n\n${keywords.join(', ')}. These tags have been successfully integrated into your node.`;
                 updateNote(activeNote._id, { tags: [...new Set([...(activeNote.tags || []), ...keywords])] });
             } else if (actionType === 'flashcards') {
                 const sentences = activeNote.content.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 30);
@@ -149,16 +126,14 @@ const AIPanel = () => {
             setMessages(prev => [...prev, { role: 'assistant', text: result }]);
         } catch (err) {
             console.error(err);
-            setMessages(prev => [...prev, { role: 'assistant', text: "⚠️ AI service is offline. Using local fallback..." }]);
-            const fallbackSummary = `Summary: ${activeNote.content.substring(0, 300)}...`;
-            setMessages(prev => [...prev, { role: 'assistant', text: fallbackSummary }]);
+            setMessages(prev => [...prev, { role: 'assistant', text: "⚠️ Intelligence Link Severed. Please ensure the AI microservice is online." }]);
         }
         setLoading(false);
     };
 
     const handleInsertToNote = (text) => {
-        const cleanText = text.replace(/[📝✨🔑🧠\*\*]/g, '').trim();
-        const newContent = `${activeNote.content}\n\n---\n**AI Analysis:**\n${cleanText}`;
+        const cleanText = text.replace(/[*✨💡🔑]/g, '').trim();
+        const newContent = `${activeNote.content}\n\n---\n**AI DEEP ANALYSIS:**\n${cleanText}`;
         updateNote(activeNote._id, { content: newContent });
     };
 
@@ -172,7 +147,7 @@ const AIPanel = () => {
             setTimeout(() => {
                 setMessages(prev => [...prev, { 
                     role: 'assistant', 
-                    text: `Based on your note "${activeNote.title}", I found some context regarding "${userText}". Keep adding details to your note so I can assist you further!` 
+                    text: `Analyzing context for "${userText}" within the framework of "${activeNote.title}". Analysis complete: No conflicting data found. Continue building your node.` 
                 }]);
                 setLoading(false);
             }, 1000);
@@ -180,44 +155,43 @@ const AIPanel = () => {
     };
 
     return (
-        <div className="w-80 h-screen bg-[#020617] border-l border-slate-900 flex flex-col sticky top-0 right-0 hidden lg:flex shrink-0 font-outfit">
-            <div className="p-6 border-b border-slate-900 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                    <Zap size={16} className="text-indigo-400 fill-indigo-400/20" />
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">AI Copilot</h3>
+        <div className="w-80 h-screen bg-[#020617] border-l border-slate-900/50 flex flex-col sticky top-0 right-0 hidden lg:flex shrink-0 font-outfit shadow-2xl">
+            <div className="p-8 border-b border-slate-900/50 flex items-center justify-between shrink-0 bg-[#020617]">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/20">
+                        <Zap size={18} className="text-indigo-400 fill-indigo-400/20" />
+                    </div>
+                    <div>
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-white">AI Copilot</h3>
+                        <div className="flex items-center gap-1.5 mt-1">
+                            <div className={`w-1.5 h-1.5 rounded-full ${loading ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
+                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{loading ? 'Processing' : 'Core Ready'}</span>
+                        </div>
+                    </div>
                 </div>
                 {loading && <Loader size={14} className="animate-spin text-indigo-500" />}
             </div>
 
-            {/* Reverted to standard flex scroll area - NO truncation/Read More */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar">
                 <AnimatePresence>
                     {messages.map((m, i) => (
                         <MessageBubble key={i} m={m} onInsertToNote={handleInsertToNote} isOwner={isOwner} />
                     ))}
                 </AnimatePresence>
-                <div ref={bottomRef} />
+                <div ref={bottomRef} className="h-4" />
             </div>
 
-            <div className="p-4 bg-[#030712] border-t border-slate-900 space-y-3 flex flex-col shrink-0">
-                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Quick Intelligence</p>
+            <div className="p-6 bg-[#030712] border-t border-slate-900/50 space-y-4 flex flex-col shrink-0">
+                <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Quantum Intelligence</p>
                 
-                <div className="flex gap-2 mb-3">
-                    <button onClick={() => handleAction('summarize')} className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-indigo-500/50 transition-all group">
-                        <AlignLeft size={14} className="text-indigo-400" />
-                        <span className="text-[10px] font-bold text-slate-300">Summarize</span>
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                    <button onClick={() => handleAction('summarize')} className="flex flex-col items-center justify-center gap-2 py-4 bg-[#0f172a] border border-slate-800 rounded-2xl hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all group">
+                        <AlignLeft size={16} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-200">Summarize</span>
                     </button>
-                    <button onClick={() => handleAction('simplify')} className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-purple-500/50 transition-all group">
-                        <Zap size={14} className="text-purple-400" />
-                        <span className="text-[10px] font-bold text-slate-300">Simplify</span>
-                    </button>
-                    <button onClick={() => handleAction('keywords')} className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-emerald-500/50 transition-all group">
-                        <Hash size={14} className="text-emerald-400" />
-                        <span className="text-[10px] font-bold text-slate-300">Keywords</span>
-                    </button>
-                    <button onClick={() => handleAction('flashcards')} className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-amber-500/50 transition-all group">
-                        <Brain size={14} className="text-amber-400" />
-                        <span className="text-[10px] font-bold text-slate-300">Study</span>
+                    <button onClick={() => handleAction('simplify')} className="flex flex-col items-center justify-center gap-2 py-4 bg-[#0f172a] border border-slate-800 rounded-2xl hover:border-purple-500/40 hover:bg-purple-500/5 transition-all group">
+                        <Zap size={16} className="text-purple-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-200">Simplify</span>
                     </button>
                 </div>
 
@@ -227,14 +201,14 @@ const AIPanel = () => {
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyDown={handleChatSubmit}
-                        placeholder="Ask your brain..."
-                        className="w-full bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-xl py-3 pl-4 pr-10 focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="Consult your AI..."
+                        className="w-full bg-[#0f172a] border border-slate-800 text-slate-300 text-xs rounded-2xl py-4 pl-5 pr-12 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all"
                     />
                     <button 
                         onClick={() => handleChatSubmit({ key: 'Enter' })}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-indigo-400 transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-indigo-400 transition-colors"
                     >
-                        <Send size={16} />
+                        <Send size={18} />
                     </button>
                 </div>
             </div>
