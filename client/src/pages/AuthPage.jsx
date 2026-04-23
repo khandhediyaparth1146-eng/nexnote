@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogIn, UserPlus, Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
+import { LogIn, UserPlus, Mail, Lock, User, ArrowRight, Sparkles, Wifi } from 'lucide-react';
 import { api } from '../services/api';
 
 const AuthPage = () => {
@@ -9,7 +9,26 @@ const AuthPage = () => {
     const [formData, setFormData] = useState({ username: '', email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [serverReady, setServerReady] = useState(false);
+    const [serverWaking, setServerWaking] = useState(true);
     const navigate = useNavigate();
+
+    // Wake up the Render backend the moment user lands on auth page
+    useEffect(() => {
+        const wakeServer = async () => {
+            setServerWaking(true);
+            try {
+                await api.health();
+                setServerReady(true);
+            } catch (e) {
+                // Server may still be waking, that's okay — login will retry
+                setServerReady(false);
+            } finally {
+                setServerWaking(false);
+            }
+        };
+        wakeServer();
+    }, []);
 
     const toggleMode = () => {
         setIsLogin(!isLogin);
@@ -66,6 +85,26 @@ const AuthPage = () => {
                         Nex<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Note</span>
                     </h1>
                     <p className="text-slate-400 font-medium">The Intelligent Workspace for Creators</p>
+                    
+                    {/* Server Status Indicator */}
+                    <div className="mt-3 flex items-center justify-center gap-2">
+                        {serverWaking ? (
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
+                                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                Warming up server... (30s)
+                            </div>
+                        ) : serverReady ? (
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                Server ready — Login instantly!
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold">
+                                <Wifi size={12} />
+                                Check your internet connection
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Auth Card */}
