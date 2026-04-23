@@ -168,7 +168,7 @@ const AIPanel = () => {
             </div>
 
             {/* Messages - scrollable, takes all remaining space */}
-            <div style={{ height: 'calc(100vh - 60px - 280px)', overflowY: 'auto', padding: '16px' }}>
+            <div style={{ height: 'calc(100vh - 60px - 200px)', overflowY: 'auto', padding: '16px' }}>
                 <div className="space-y-4">
                     <AnimatePresence>
                         {messages.map((m, i) => (
@@ -179,38 +179,26 @@ const AIPanel = () => {
                 </div>
             </div>
 
-            {/* Bottom controls - fixed height */}
-            <div style={{ height: '280px', padding: '16px', borderTop: '1px solid #0f172a', background: '#030712' }}>
-                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-3">Quick Intelligence</p>
+            {/* Bottom controls - compact */}
+            <div style={{ height: '200px', padding: '12px 16px', borderTop: '1px solid #0f172a', background: '#030712' }}>
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Quick Intelligence</p>
                 
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                    <button 
-                        onClick={() => handleAction('summarize')}
-                        className="flex flex-col items-start gap-1.5 p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-indigo-500/50 transition-all group"
-                    >
-                        <AlignLeft size={14} className="text-indigo-400 group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-bold text-slate-300">Summarize</span>
+                <div className="flex gap-2 mb-3">
+                    <button onClick={() => handleAction('summarize')} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 border border-slate-800 rounded-lg hover:border-indigo-500/50 transition-all group">
+                        <AlignLeft size={12} className="text-indigo-400" />
+                        <span className="text-[9px] font-bold text-slate-300">Summarize</span>
                     </button>
-                    <button 
-                        onClick={() => handleAction('simplify')}
-                        className="flex flex-col items-start gap-1.5 p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-purple-500/50 transition-all group"
-                    >
-                        <Zap size={14} className="text-purple-400 group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-bold text-slate-300">Simplify</span>
+                    <button onClick={() => handleAction('simplify')} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 border border-slate-800 rounded-lg hover:border-purple-500/50 transition-all group">
+                        <Zap size={12} className="text-purple-400" />
+                        <span className="text-[9px] font-bold text-slate-300">Simplify</span>
                     </button>
-                    <button 
-                        onClick={() => handleAction('keywords')}
-                        className="flex flex-col items-start gap-1.5 p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-emerald-500/50 transition-all group"
-                    >
-                        <Hash size={14} className="text-emerald-400 group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-bold text-slate-300">Keywords</span>
+                    <button onClick={() => handleAction('keywords')} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 border border-slate-800 rounded-lg hover:border-emerald-500/50 transition-all group">
+                        <Hash size={12} className="text-emerald-400" />
+                        <span className="text-[9px] font-bold text-slate-300">Keywords</span>
                     </button>
-                    <button 
-                        onClick={() => handleAction('flashcards')}
-                        className="flex flex-col items-start gap-1.5 p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-amber-500/50 transition-all group"
-                    >
-                        <Brain size={14} className="text-amber-400 group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-bold text-slate-300">Study</span>
+                    <button onClick={() => handleAction('flashcards')} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 border border-slate-800 rounded-lg hover:border-amber-500/50 transition-all group">
+                        <Brain size={12} className="text-amber-400" />
+                        <span className="text-[9px] font-bold text-slate-300">Study</span>
                     </button>
                 </div>
 
