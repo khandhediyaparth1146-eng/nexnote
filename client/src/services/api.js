@@ -46,5 +46,5 @@ export const api = {
     register: (data) => axios.post(`${BASE}/auth/register`, data),
 
     // AI Microservice
-    analyzeNote: (text) => axios.post(`${AI_BASE}/analyze`, { text }),
+    analyzeNote: (text, action) => axios.post(`${AI_BASE}/analyze`, { text, action }),
 };

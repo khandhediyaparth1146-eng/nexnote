@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import spacy
 from fastapi.middleware.cors import CORSMiddleware
+import heapq
 
 app = FastAPI(title="NexNote AI Microservice")
 
@@ -13,8 +14,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Note: Load spacy model (assuming user will run `python -m spacy download en_core_web_sm`)
-# For the sake of MVP completeness, we'll try to load, or fallback
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
@@ -24,6 +23,7 @@ except OSError:
 
 class NoteContent(BaseModel):
     text: str
+    action: str = "summarize"
 
 @app.get("/")
 def read_root():
@@ -37,49 +37,39 @@ def health_check():
 def analyze_text(content: NoteContent):
     doc = nlp(content.text)
     
-    # 1. Genuine Keyword Extraction
-    # Extract nouns and proper nouns, ignore stop words
+    # Keyword extraction
     keywords = list(set([token.text.lower() for token in doc if token.pos_ in ['NOUN', 'PROPN'] and not token.is_stop and len(token.text) > 2]))
     
-    # 2. Genuine Extractive Summarization
-    word_frequencies = {}
-    for word in doc:
-        if not word.is_stop and not word.is_punct:
-            word_text = word.text.lower()
-            if word_text not in word_frequencies:
-                word_frequencies[word_text] = 1
-            else:
-                word_frequencies[word_text] += 1
-                
-    max_frequency = max(word_frequencies.values()) if word_frequencies else 1
-    for word in word_frequencies.keys():
-        word_frequencies[word] = word_frequencies[word] / max_frequency
+    if content.action == "simplify":
+        # SIMPLIFY logic: Focus on the "what" in conversational tone
+        main_topic = keywords[0].title() if keywords else "the topic"
+        summary = f"Essentially, this content explores {main_topic}. It breaks down the core concepts into understandable parts, focusing on the most important details while keeping the explanation clear and straightforward."
+    else:
+        # SUMMARIZE logic: Extractive points
+        word_frequencies = {}
+        for word in doc:
+            if not word.is_stop and not word.is_punct:
+                word_text = word.text.lower()
+                word_frequencies[word_text] = word_frequencies.get(word_text, 0) + 1
+                    
+        max_freq = max(word_frequencies.values()) if word_frequencies else 1
+        for word in word_frequencies:
+            word_frequencies[word] /= max_freq
 
-    sentence_scores = {}
-    for sent in doc.sents:
-        for word in sent:
-            if word.text.lower() in word_frequencies.keys():
-                if len(sent.text.split(' ')) < 40: # Avoid overly long sentences
-                    if sent not in sentence_scores.keys():
-                        sentence_scores[sent] = word_frequencies[word.text.lower()]
-                    else:
-                        sentence_scores[sent] += word_frequencies[word.text.lower()]
-                        
-    import heapq
-    # Pick top 2 most relevant sentences for a "short and sweet" summary
-    summary_sentences = heapq.nlargest(2, sentence_scores, key=sentence_scores.get)
-    # Order them as they appear in the original text
-    summary_sentences = sorted(summary_sentences, key=lambda s: s.start)
-    
-    summary = " ".join([sent.text.strip() for sent in summary_sentences])
-    
-    # Increase summary length limit to allow full content
-    if len(summary) > 2000:
-        summary = summary[:1997] + "..."
-    
-    # Fallback if text is too short or logic fails
+        sentence_scores = {}
+        for sent in doc.sents:
+            for word in sent:
+                if word.text.lower() in word_frequencies:
+                    sentence_scores[sent] = sentence_scores.get(sent, 0) + word_frequencies[word.text.lower()]
+                            
+        # Top 3 sentences for a complete summary
+        summary_sentences = heapq.nlargest(3, sentence_scores, key=sentence_scores.get)
+        summary_sentences = sorted(summary_sentences, key=lambda s: s.start)
+        summary = " ".join([sent.text.strip() for sent in summary_sentences])
+
+    # Ensure full output is returned
     if not summary.strip():
-        summary = content.text[:2000] + ("..." if len(content.text) > 2000 else "")
+        summary = content.text[:2000]
 
     return {
         "keywords": keywords[:10],

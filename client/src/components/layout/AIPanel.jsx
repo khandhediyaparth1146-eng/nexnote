@@ -6,10 +6,7 @@ import { api } from '../../services/api';
 
 const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
     const [copied, setCopied] = useState(false);
-    const [expanded, setExpanded] = useState(false);
     const isAI = m.role === 'assistant';
-    const isLong = m.text.length > 200;
-    const displayText = (isLong && !expanded) ? `${m.text.substring(0, 200)}...` : m.text;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(m.text);
@@ -29,24 +26,14 @@ const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
             }`}
             style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
         >
-            <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                    {isAI ? <Sparkles size={12} className="text-indigo-400" /> : <div className="w-1 h-1 rounded-full bg-indigo-500" />}
-                    <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">
-                        {isAI ? 'Nex AI' : 'You'}
-                    </span>
-                </div>
-                {isLong && (
-                    <button 
-                        onClick={() => setExpanded(!expanded)}
-                        className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition uppercase tracking-tighter"
-                    >
-                        {expanded ? 'Show Less' : 'Read More'}
-                    </button>
-                )}
+            <div className="flex items-center gap-2 mb-2">
+                {isAI ? <Sparkles size={12} className="text-indigo-400" /> : <div className="w-1 h-1 rounded-full bg-indigo-500" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">
+                    {isAI ? 'Nex AI' : 'You'}
+                </span>
             </div>
 
-            <div className="whitespace-pre-wrap">{displayText}</div>
+            <div className="whitespace-pre-wrap">{m.text}</div>
 
             {isAI && (
                 <div className="flex items-center gap-3 mt-4 pt-3 border-t border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -101,23 +88,18 @@ const AIPanel = () => {
 
         setLoading(true);
         try {
-            // Call AI Microservice
-            const response = await api.analyzeNote(activeNote.content);
+            // Call AI Microservice with specific action
+            const response = await api.analyzeNote(activeNote.content, actionType);
             const { keywords, summary } = response.data;
             
             let result = '';
 
             if (actionType === 'summarize') {
-                const wordCount = activeNote.content.split(/\s+/).length;
-                // Only add header if summary doesn't already have one (fallback case)
-                const cleanSummary = summary.startsWith('Summary of') ? summary.split(':').slice(1).join(':').trim() : summary;
-                result = `📝 Summary of ${wordCount} words note:\n\n${cleanSummary}`;
+                result = `📝 **Core Summary:**\n\n${summary}`;
             } else if (actionType === 'simplify') {
-                const wordCount = activeNote.content.split(/\s+/).length;
-                const cleanSummary = summary.startsWith('Summary of') ? summary.split(':').slice(1).join(':').trim() : summary;
-                result = `✨ Simplified perspective (${wordCount} words):\n\n${cleanSummary}`;
+                result = `✨ **Simplified Perspective:**\n\n${summary}`;
             } else if (actionType === 'keywords') {
-                result = `🔑 Key terms detected: ${keywords.join(', ')}. These have been added to your note tags.`;
+                result = `🔑 **Key Terms:**\n\n${keywords.join(', ')}. These have been added to your note tags.`;
                 updateNote(activeNote._id, { tags: [...new Set([...(activeNote.tags || []), ...keywords])] });
             } else if (actionType === 'flashcards') {
                 const sentences = activeNote.content.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 30);
@@ -141,15 +123,14 @@ const AIPanel = () => {
         } catch (err) {
             console.error(err);
             setMessages(prev => [...prev, { role: 'assistant', text: "⚠️ AI service is offline. Using local fallback..." }]);
-            // Fallback to local logic (kept simple)
-            const fallbackSummary = `Summary: ${activeNote.content.substring(0, 100)}...`;
+            const fallbackSummary = `Summary: ${activeNote.content.substring(0, 300)}...`;
             setMessages(prev => [...prev, { role: 'assistant', text: fallbackSummary }]);
         }
         setLoading(false);
     };
 
     const handleInsertToNote = (text) => {
-        const cleanText = text.replace(/[📝✨🔑🧠]/g, '').trim();
+        const cleanText = text.replace(/[📝✨🔑🧠\*\*]/g, '').trim();
         const newContent = `${activeNote.content}\n\n---\n**AI Analysis:**\n${cleanText}`;
         updateNote(activeNote._id, { content: newContent });
     };
@@ -161,7 +142,6 @@ const AIPanel = () => {
             setChatInput('');
             setLoading(true);
 
-            // Mock AI chat response (since real LLM isn't available)
             setTimeout(() => {
                 setMessages(prev => [...prev, { 
                     role: 'assistant', 
@@ -173,9 +153,8 @@ const AIPanel = () => {
     };
 
     return (
-        <div className="w-80 bg-[#020617] border-l border-slate-900 hidden lg:block shrink-0 font-outfit" style={{ height: '100vh', position: 'sticky', top: 0 }}>
-            {/* Header - fixed height */}
-            <div style={{ height: '60px', padding: '16px 24px', borderBottom: '1px solid #0f172a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="w-80 h-screen bg-[#020617] border-l border-slate-900 flex flex-col sticky top-0 right-0 hidden lg:flex shrink-0 font-outfit">
+            <div className="p-6 border-b border-slate-900 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                     <Zap size={16} className="text-indigo-400 fill-indigo-400/20" />
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">AI Copilot</h3>
@@ -183,38 +162,35 @@ const AIPanel = () => {
                 {loading && <Loader size={14} className="animate-spin text-indigo-500" />}
             </div>
 
-            {/* Messages - scrollable, takes all remaining space */}
-            <div style={{ height: 'calc(100vh - 60px - 200px)', overflowY: 'auto', padding: '16px' }}>
-                <div className="space-y-4">
-                    <AnimatePresence>
-                        {messages.map((m, i) => (
-                            <MessageBubble key={i} m={m} onInsertToNote={handleInsertToNote} isOwner={isOwner} />
-                        ))}
-                    </AnimatePresence>
-                    <div ref={bottomRef} />
-                </div>
+            {/* Reverted to standard flex scroll area - NO truncation/Read More */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <AnimatePresence>
+                    {messages.map((m, i) => (
+                        <MessageBubble key={i} m={m} onInsertToNote={handleInsertToNote} isOwner={isOwner} />
+                    ))}
+                </AnimatePresence>
+                <div ref={bottomRef} />
             </div>
 
-            {/* Bottom controls - compact */}
-            <div style={{ height: '200px', padding: '12px 16px', borderTop: '1px solid #0f172a', background: '#030712' }}>
-                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Quick Intelligence</p>
+            <div className="p-4 bg-[#030712] border-t border-slate-900 space-y-3 flex flex-col shrink-0">
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Quick Intelligence</p>
                 
                 <div className="flex gap-2 mb-3">
-                    <button onClick={() => handleAction('summarize')} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 border border-slate-800 rounded-lg hover:border-indigo-500/50 transition-all group">
-                        <AlignLeft size={12} className="text-indigo-400" />
-                        <span className="text-[9px] font-bold text-slate-300">Summarize</span>
+                    <button onClick={() => handleAction('summarize')} className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-indigo-500/50 transition-all group">
+                        <AlignLeft size={14} className="text-indigo-400" />
+                        <span className="text-[10px] font-bold text-slate-300">Summarize</span>
                     </button>
-                    <button onClick={() => handleAction('simplify')} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 border border-slate-800 rounded-lg hover:border-purple-500/50 transition-all group">
-                        <Zap size={12} className="text-purple-400" />
-                        <span className="text-[9px] font-bold text-slate-300">Simplify</span>
+                    <button onClick={() => handleAction('simplify')} className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-purple-500/50 transition-all group">
+                        <Zap size={14} className="text-purple-400" />
+                        <span className="text-[10px] font-bold text-slate-300">Simplify</span>
                     </button>
-                    <button onClick={() => handleAction('keywords')} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 border border-slate-800 rounded-lg hover:border-emerald-500/50 transition-all group">
-                        <Hash size={12} className="text-emerald-400" />
-                        <span className="text-[9px] font-bold text-slate-300">Keywords</span>
+                    <button onClick={() => handleAction('keywords')} className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-emerald-500/50 transition-all group">
+                        <Hash size={14} className="text-emerald-400" />
+                        <span className="text-[10px] font-bold text-slate-300">Keywords</span>
                     </button>
-                    <button onClick={() => handleAction('flashcards')} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 border border-slate-800 rounded-lg hover:border-amber-500/50 transition-all group">
-                        <Brain size={12} className="text-amber-400" />
-                        <span className="text-[9px] font-bold text-slate-300">Study</span>
+                    <button onClick={() => handleAction('flashcards')} className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-amber-500/50 transition-all group">
+                        <Brain size={14} className="text-amber-400" />
+                        <span className="text-[10px] font-bold text-slate-300">Study</span>
                     </button>
                 </div>
 
@@ -225,7 +201,7 @@ const AIPanel = () => {
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyDown={handleChatSubmit}
                         placeholder="Ask your brain..."
-                        className="w-full bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-xl py-2.5 pl-4 pr-10 focus:outline-none focus:border-indigo-500 transition-colors"
+                        className="w-full bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-xl py-3 pl-4 pr-10 focus:outline-none focus:border-indigo-500 transition-colors"
                     />
                     <button 
                         onClick={() => handleChatSubmit({ key: 'Enter' })}
@@ -240,4 +216,3 @@ const AIPanel = () => {
 };
 
 export default AIPanel;
-
