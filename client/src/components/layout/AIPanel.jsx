@@ -157,8 +157,9 @@ const AIPanel = () => {
     };
 
     return (
-        <div className="w-80 h-screen bg-[#020617] border-l border-slate-900 flex flex-col sticky top-0 right-0 hidden lg:flex shrink-0 font-outfit" style={{ maxHeight: '100vh' }}>
-            <div className="p-6 border-b border-slate-900 flex items-center justify-between shrink-0">
+        <div className="w-80 bg-[#020617] border-l border-slate-900 hidden lg:block shrink-0 font-outfit" style={{ height: '100vh', position: 'sticky', top: 0 }}>
+            {/* Header - fixed height */}
+            <div style={{ height: '60px', padding: '16px 24px', borderBottom: '1px solid #0f172a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div className="flex items-center gap-2">
                     <Zap size={16} className="text-indigo-400 fill-indigo-400/20" />
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">AI Copilot</h3>
@@ -166,57 +167,61 @@ const AIPanel = () => {
                 {loading && <Loader size={14} className="animate-spin text-indigo-500" />}
             </div>
 
-            <div className="flex-1 p-4 space-y-4" style={{ overflowY: 'auto', minHeight: 0 }}>
-                <AnimatePresence>
-                    {messages.map((m, i) => (
-                        <MessageBubble key={i} m={m} onInsertToNote={handleInsertToNote} isOwner={isOwner} />
-                    ))}
-                </AnimatePresence>
-                <div ref={bottomRef} />
+            {/* Messages - scrollable, takes all remaining space */}
+            <div style={{ height: 'calc(100vh - 60px - 280px)', overflowY: 'auto', padding: '16px' }}>
+                <div className="space-y-4">
+                    <AnimatePresence>
+                        {messages.map((m, i) => (
+                            <MessageBubble key={i} m={m} onInsertToNote={handleInsertToNote} isOwner={isOwner} />
+                        ))}
+                    </AnimatePresence>
+                    <div ref={bottomRef} />
+                </div>
             </div>
 
-            <div className="p-4 bg-[#030712] border-t border-slate-900 space-y-3 flex flex-col shrink-0">
-                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Quick Intelligence</p>
+            {/* Bottom controls - fixed height */}
+            <div style={{ height: '280px', padding: '16px', borderTop: '1px solid #0f172a', background: '#030712' }}>
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-3">Quick Intelligence</p>
                 
-                <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="grid grid-cols-2 gap-2 mb-3">
                     <button 
                         onClick={() => handleAction('summarize')}
-                        className="flex flex-col items-start gap-2 p-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-indigo-500/50 transition-all group"
+                        className="flex flex-col items-start gap-1.5 p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-indigo-500/50 transition-all group"
                     >
-                        <AlignLeft size={16} className="text-indigo-400 group-hover:scale-110 transition-transform" />
-                        <span className="text-[11px] font-bold text-slate-300">Summarize</span>
+                        <AlignLeft size={14} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold text-slate-300">Summarize</span>
                     </button>
                     <button 
                         onClick={() => handleAction('simplify')}
-                        className="flex flex-col items-start gap-2 p-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-purple-500/50 transition-all group"
+                        className="flex flex-col items-start gap-1.5 p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-purple-500/50 transition-all group"
                     >
-                        <Zap size={16} className="text-purple-400 group-hover:scale-110 transition-transform" />
-                        <span className="text-[11px] font-bold text-slate-300">Simplify</span>
+                        <Zap size={14} className="text-purple-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold text-slate-300">Simplify</span>
                     </button>
                     <button 
                         onClick={() => handleAction('keywords')}
-                        className="flex flex-col items-start gap-2 p-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-emerald-500/50 transition-all group"
+                        className="flex flex-col items-start gap-1.5 p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-emerald-500/50 transition-all group"
                     >
-                        <Hash size={16} className="text-emerald-400 group-hover:scale-110 transition-transform" />
-                        <span className="text-[11px] font-bold text-slate-300">Keywords</span>
+                        <Hash size={14} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold text-slate-300">Keywords</span>
                     </button>
                     <button 
                         onClick={() => handleAction('flashcards')}
-                        className="flex flex-col items-start gap-2 p-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-amber-500/50 transition-all group"
+                        className="flex flex-col items-start gap-1.5 p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-amber-500/50 transition-all group"
                     >
-                        <Brain size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
-                        <span className="text-[11px] font-bold text-slate-300">Study</span>
+                        <Brain size={14} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold text-slate-300">Study</span>
                     </button>
                 </div>
 
-                <div className="relative mt-2">
+                <div className="relative">
                     <input 
                         type="text"
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyDown={handleChatSubmit}
                         placeholder="Ask your brain..."
-                        className="w-full bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-xl py-3 pl-4 pr-10 focus:outline-none focus:border-indigo-500 transition-colors"
+                        className="w-full bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-xl py-2.5 pl-4 pr-10 focus:outline-none focus:border-indigo-500 transition-colors"
                     />
                     <button 
                         onClick={() => handleChatSubmit({ key: 'Enter' })}
@@ -231,3 +236,4 @@ const AIPanel = () => {
 };
 
 export default AIPanel;
+
