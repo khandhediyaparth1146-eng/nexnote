@@ -95,9 +95,11 @@ const AIPanel = () => {
             let result = '';
 
             if (actionType === 'summarize') {
-                result = `📝 ${summary}`;
+                const wordCount = activeNote.content.split(/\s+/).length;
+                result = `📝 Summary of ${wordCount} words note:\n\n${summary}`;
             } else if (actionType === 'simplify') {
-                result = `✨ Simplified perspective:\n${summary}`;
+                const wordCount = activeNote.content.split(/\s+/).length;
+                result = `✨ Simplified perspective (${wordCount} words):\n\n${summary}`;
             } else if (actionType === 'keywords') {
                 result = `🔑 Key terms detected: ${keywords.join(', ')}. These have been added to your note tags.`;
                 updateNote(activeNote._id, { tags: [...new Set([...(activeNote.tags || []), ...keywords])] });
@@ -155,8 +157,8 @@ const AIPanel = () => {
     };
 
     return (
-        <div className="w-80 h-screen bg-[#020617] border-l border-slate-900 flex flex-col sticky top-0 right-0 hidden lg:flex shrink-0 font-outfit">
-            <div className="p-6 border-b border-slate-900 flex items-center justify-between">
+        <div className="w-80 h-screen bg-[#020617] border-l border-slate-900 flex flex-col sticky top-0 right-0 hidden lg:flex shrink-0 font-outfit" style={{ maxHeight: '100vh' }}>
+            <div className="p-6 border-b border-slate-900 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                     <Zap size={16} className="text-indigo-400 fill-indigo-400/20" />
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">AI Copilot</h3>
@@ -164,7 +166,7 @@ const AIPanel = () => {
                 {loading && <Loader size={14} className="animate-spin text-indigo-500" />}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ overflowY: 'scroll', minHeight: 0 }}>
+            <div className="flex-1 p-4 space-y-4" style={{ overflowY: 'auto', minHeight: 0 }}>
                 <AnimatePresence>
                     {messages.map((m, i) => (
                         <MessageBubble key={i} m={m} onInsertToNote={handleInsertToNote} isOwner={isOwner} />
@@ -173,7 +175,7 @@ const AIPanel = () => {
                 <div ref={bottomRef} />
             </div>
 
-            <div className="p-6 bg-[#030712] border-t border-slate-900 space-y-4 flex flex-col">
+            <div className="p-4 bg-[#030712] border-t border-slate-900 space-y-3 flex flex-col shrink-0">
                 <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Quick Intelligence</p>
                 
                 <div className="grid grid-cols-2 gap-2 mb-4">
