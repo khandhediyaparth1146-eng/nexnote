@@ -73,9 +73,9 @@ def analyze_text(content: NoteContent):
     
     summary = " ".join([sent.text.strip() for sent in summary_sentences])
     
-    # Fallback if text is too short
+    # Fallback if text is too short or logic fails
     if not summary.strip():
-        summary = content.text[:200] + ("..." if len(content.text) > 200 else "")
+        summary = content.text[:1000] + ("..." if len(content.text) > 1000 else "")
 
     return {
         "keywords": keywords[:10],

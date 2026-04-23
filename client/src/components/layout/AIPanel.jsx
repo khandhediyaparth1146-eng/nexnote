@@ -6,7 +6,10 @@ import { api } from '../../services/api';
 
 const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
     const [copied, setCopied] = useState(false);
+    const [expanded, setExpanded] = useState(false);
     const isAI = m.role === 'assistant';
+    const isLong = m.text.length > 200;
+    const displayText = (isLong && !expanded) ? `${m.text.substring(0, 200)}...` : m.text;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(m.text);
@@ -26,14 +29,24 @@ const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
             }`}
             style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
         >
-            <div className="flex items-center gap-2 mb-2">
-                {isAI ? <Sparkles size={12} className="text-indigo-400" /> : <div className="w-1 h-1 rounded-full bg-indigo-500" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">
-                    {isAI ? 'Nex AI' : 'You'}
-                </span>
+            <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                    {isAI ? <Sparkles size={12} className="text-indigo-400" /> : <div className="w-1 h-1 rounded-full bg-indigo-500" />}
+                    <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">
+                        {isAI ? 'Nex AI' : 'You'}
+                    </span>
+                </div>
+                {isLong && (
+                    <button 
+                        onClick={() => setExpanded(!expanded)}
+                        className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition uppercase tracking-tighter"
+                    >
+                        {expanded ? 'Show Less' : 'Read More'}
+                    </button>
+                )}
             </div>
 
-            <div className="whitespace-pre-wrap">{m.text}</div>
+            <div className="whitespace-pre-wrap">{displayText}</div>
 
             {isAI && (
                 <div className="flex items-center gap-3 mt-4 pt-3 border-t border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">
