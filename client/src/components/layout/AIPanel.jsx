@@ -109,10 +109,13 @@ const AIPanel = () => {
 
             if (actionType === 'summarize') {
                 const wordCount = activeNote.content.split(/\s+/).length;
-                result = `📝 Summary of ${wordCount} words note:\n\n${summary}`;
+                // Only add header if summary doesn't already have one (fallback case)
+                const cleanSummary = summary.startsWith('Summary of') ? summary.split(':').slice(1).join(':').trim() : summary;
+                result = `📝 Summary of ${wordCount} words note:\n\n${cleanSummary}`;
             } else if (actionType === 'simplify') {
                 const wordCount = activeNote.content.split(/\s+/).length;
-                result = `✨ Simplified perspective (${wordCount} words):\n\n${summary}`;
+                const cleanSummary = summary.startsWith('Summary of') ? summary.split(':').slice(1).join(':').trim() : summary;
+                result = `✨ Simplified perspective (${wordCount} words):\n\n${cleanSummary}`;
             } else if (actionType === 'keywords') {
                 result = `🔑 Key terms detected: ${keywords.join(', ')}. These have been added to your note tags.`;
                 updateNote(activeNote._id, { tags: [...new Set([...(activeNote.tags || []), ...keywords])] });
