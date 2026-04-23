@@ -6,7 +6,9 @@ import { api } from '../../services/api';
 
 const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
     const [copied, setCopied] = useState(false);
+    const [expanded, setExpanded] = useState(false);
     const isAI = m.role === 'assistant';
+    const isLong = m.text.length > 350;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(m.text);
@@ -19,12 +21,11 @@ const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`group p-4 rounded-2xl text-sm leading-relaxed transition-all ${
+            className={`group p-4 rounded-2xl text-sm leading-relaxed transition-all relative ${
                 isAI
                 ? 'bg-slate-900 border border-slate-800 text-slate-200'
                 : 'bg-indigo-600/10 border border-indigo-600/20 text-indigo-300 ml-6'
             }`}
-            style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
         >
             <div className="flex items-center gap-2 mb-2">
                 {isAI ? <Sparkles size={12} className="text-indigo-400" /> : <div className="w-1 h-1 rounded-full bg-indigo-500" />}
@@ -33,7 +34,33 @@ const MessageBubble = ({ m, onInsertToNote, onCopy, isOwner }) => {
                 </span>
             </div>
 
-            <div className="whitespace-pre-wrap">{m.text}</div>
+            <div 
+                className={`whitespace-pre-wrap transition-all duration-300 relative ${
+                    isLong && !expanded ? 'max-h-32 overflow-hidden' : 'max-h-[2000px]'
+                }`}
+            >
+                {m.text}
+                
+                {isLong && !expanded && (
+                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-slate-900 to-transparent flex items-end justify-center">
+                        <button 
+                            onClick={() => setExpanded(true)}
+                            className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 mb-1 transition-colors uppercase tracking-widest bg-slate-900/80 px-2 py-1 rounded-md"
+                        >
+                            + Show Full Analysis
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {isLong && expanded && (
+                <button 
+                    onClick={() => setExpanded(false)}
+                    className="text-[10px] font-bold text-slate-500 hover:text-white mt-2 transition-colors uppercase tracking-widest"
+                >
+                    - Show Less
+                </button>
+            )}
 
             {isAI && (
                 <div className="flex items-center gap-3 mt-4 pt-3 border-t border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">
