@@ -1,4 +1,4 @@
-import { Home, LayoutGrid, Compass, BookOpen, BarChart3, User, LogOut, Sparkles, Plus, Search, Users, Zap } from 'lucide-react';
+import { Home, LayoutGrid, Compass, BookOpen, BarChart3, User, LogOut, Sparkles, Plus, Search, Users, Zap, Flame } from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -19,9 +19,37 @@ const NavItem = ({ icon, label, active, onClick }) => (
     </button>
 );
 
+const calculateStreak = (notes) => {
+    if (!notes || notes.length === 0) return 0;
+
+    // Get all unique dates when notes were created or updated
+    const activeDays = new Set(
+        notes.map(n => {
+            const d = new Date(n.updatedAt || n.createdAt);
+            return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        })
+    );
+
+    let streak = 0;
+    const today = new Date();
+
+    for (let i = 0; i < 365; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        if (activeDays.has(key)) {
+            streak++;
+        } else {
+            break; // streak is broken
+        }
+    }
+    return streak;
+};
+
 const Sidebar = () => {
     const navigate = useNavigate();
-    const { createNote, currentView, setCurrentView } = useWorkspace();
+    const { createNote, currentView, setCurrentView, notes } = useWorkspace();
+    const streak = calculateStreak(notes);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -67,12 +95,29 @@ const Sidebar = () => {
                 <div className="mt-8 mx-2 p-4 bg-indigo-600/10 border border-indigo-600/20 rounded-2xl">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Active Streak</span>
-                        <Zap size={14} className="text-amber-400 fill-amber-400" />
+                        {streak >= 3 
+                            ? <Flame size={14} className="text-amber-400 fill-amber-400" />
+                            : <Zap size={14} className="text-amber-400 fill-amber-400" />
+                        }
                     </div>
                     <div className="flex items-end gap-2">
-                        <span className="text-2xl font-black text-white">12</span>
+                        <motion.span
+                            key={streak}
+                            initial={{ scale: 1.4, color: '#f59e0b' }}
+                            animate={{ scale: 1, color: '#ffffff' }}
+                            transition={{ duration: 0.4 }}
+                            className="text-2xl font-black text-white"
+                        >
+                            {streak}
+                        </motion.span>
                         <span className="text-[10px] font-bold text-slate-500 mb-1 uppercase">Days</span>
                     </div>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                        {streak === 0 && 'Write a note today to start!'}
+                        {streak === 1 && 'Great start! Keep it up 🚀'}
+                        {streak >= 2 && streak < 7 && `${streak} day streak! Stay consistent 💪`}
+                        {streak >= 7 && `🔥 ${streak} day streak! You're on fire!`}
+                    </p>
                 </div>
             </nav>
 
