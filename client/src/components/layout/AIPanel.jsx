@@ -193,6 +193,14 @@ const AIPanel = () => {
                         <Zap size={16} className="text-purple-400 group-hover:scale-110 transition-transform" />
                         <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-200">Simplify</span>
                     </button>
+                    <button onClick={() => handleAction('keywords')} className="flex flex-col items-center justify-center gap-2 py-4 bg-[#0f172a] border border-slate-800 rounded-2xl hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all group">
+                        <Hash size={16} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-200">Keywords</span>
+                    </button>
+                    <button onClick={() => handleAction('flashcards')} className="flex flex-col items-center justify-center gap-2 py-4 bg-[#0f172a] border border-slate-800 rounded-2xl hover:border-amber-500/40 hover:bg-amber-500/5 transition-all group">
+                        <Brain size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-200">Study</span>
+                    </button>
                 </div>
 
                 <div className="relative">
