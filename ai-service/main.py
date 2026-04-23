@@ -66,16 +66,20 @@ def analyze_text(content: NoteContent):
                         sentence_scores[sent] += word_frequencies[word.text.lower()]
                         
     import heapq
-    # Pick top 3 most relevant sentences
-    summary_sentences = heapq.nlargest(3, sentence_scores, key=sentence_scores.get)
+    # Pick top 2 most relevant sentences for a "short and sweet" summary
+    summary_sentences = heapq.nlargest(2, sentence_scores, key=sentence_scores.get)
     # Order them as they appear in the original text
     summary_sentences = sorted(summary_sentences, key=lambda s: s.start)
     
     summary = " ".join([sent.text.strip() for sent in summary_sentences])
     
+    # Strictly limit summary length for accuracy and conciseness
+    if len(summary) > 300:
+        summary = summary[:297] + "..."
+    
     # Fallback if text is too short or logic fails
     if not summary.strip():
-        summary = content.text[:1000] + ("..." if len(content.text) > 1000 else "")
+        summary = content.text[:300] + ("..." if len(content.text) > 300 else "")
 
     return {
         "keywords": keywords[:10],
